@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Modo demostración</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:"Courier New",monospace}
+  canvas{width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated}
+</style>
+</head>
+<body>
+<canvas id="c" width="400" height="300"></canvas>
+<script>
+/* Minijuego de demostración: atrapa monedas, esquiva bombas.
+   Sirve como plantilla del protocolo arcade:* para cualquier juego HTML externo. */
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+const P = new URLSearchParams(location.search);
+const TITULO = P.get("titulo") || "Demo", COLOR = P.get("c") || "#00f5ff", MAXLIVES = +P.get("vidas") || 3;
+const send = (m) => parent.postMessage(m, "*");
+
+let px = 200, items, score, lives, level, started, paused, over, spawn;
+const keys = {};
+const state = () => send({ type: "arcade:state", score, lives, level });
+
+function init() { items=[]; score=0; lives=MAXLIVES; level=1; started=false; paused=false; over=false; spawn=0; state(); }
+function lose() {
+  lives--; state();
+  if (lives<=0) { over=true; send({type:"arcade:gameover", score}); }
+}
+
+function step() {
+  if (started && !paused && !over) {
+    px += ((keys.ArrowRight||keys.d)?1:0)*5 - ((keys.ArrowLeft||keys.a)?1:0)*5;
+    px = Math.max(30, Math.min(370, px));
+    if (--spawn <= 0) { items.push({x:20+Math.random()*360, y:-10, bomb:Math.random()<0.25}); spawn = Math.max(14, 45-level*4); }
+    for (const it of items) it.y += 2 + level*0.5;
+    items = items.filter(it => {
+      const hit = it.y > 262 && it.y < 284 && Math.abs(it.x-px) < 34;
+      if (hit) {
+        if (it.bomb) lose(); else { score += 10; const nl = Math.floor(score/80)+1; if (nl!==level) level=nl; state(); }
+        return false;
+      }
+      if (it.y > 310) { if (!it.bomb) lose(); return false; }
+      return true;
+    });
+  }
+  draw(); requestAnimationFrame(step);
+}
+
+function draw() {
+  ctx.fillStyle="#05050a"; ctx.fillRect(0,0,400,300);
+  ctx.fillStyle="rgba(255,255,255,.5)";
+  for(let i=0;i<40;i++) ctx.fillRect((i*97)%400,(i*53+Date.now()/40*(1+i%3))%300,2,2);
+  ctx.shadowBlur=14;
+  for (const it of items) {
+    ctx.fillStyle = ctx.shadowColor = it.bomb ? "#ff006e" : "#f5ff00";
+    ctx.beginPath(); ctx.arc(it.x, it.y, it.bomb?9:7, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = ctx.shadowColor = COLOR; ctx.fillRect(px-30, 270, 60, 8);
+  ctx.shadowBlur=0;
+  ctx.textAlign="center";
+  if (!started && !over) {
+    ctx.fillStyle="rgba(0,0,0,.65)"; ctx.fillRect(0,95,400,110);
+    ctx.fillStyle=COLOR; ctx.font="bold 20px 'Courier New'"; ctx.fillText(TITULO.toUpperCase(), 200, 125);
+    ctx.fillStyle="#fff"; ctx.font="14px 'Courier New'";
+    ctx.fillText("MODO DEMOSTRACIÓN · atrapa monedas amarillas", 200, 150);
+    ctx.fillText("y esquiva las bombas magenta", 200, 168);
+    ctx.fillStyle="#f5ff00"; ctx.fillText("TOCA O PULSA UNA TECLA", 200, 192);
+  }
+}
+
+addEventListener("keydown", e => { keys[e.key]=true; started = true; if (e.key.startsWith("Arrow")) e.preventDefault(); });
+addEventListener("keyup", e => { keys[e.key]=false; });
+function pointer(clientX) { const r = cv.getBoundingClientRect(); px = (clientX-r.left)/r.width*400; started = true; }
+cv.addEventListener("pointermove", e => pointer(e.clientX));
+cv.addEventListener("pointerdown", e => pointer(e.clientX));
+addEventListener("message", e => {
+  if (e.data?.type==="arcade:pause") paused=true;
+  if (e.data?.type==="arcade:resume") paused=false;
+});
+init(); step();
+</script>
+</body>
+</html>
