@@ -2,20 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Comandos
-
-```bash
-npm run dev      # servidor de desarrollo
-npm run build    # build de producción (también valida tipos)
-npm run lint     # eslint
-npx tsc --noEmit # chequeo de tipos
-```
-
 No hay tests configurados.
 
 ## Next.js no estándar
 
 AGENTS.md avisa que esta versión de Next (16.x) tiene cambios incompatibles con lo que conoces. Antes de escribir código, lee la guía relevante en `node_modules/next/dist/docs/`. Ej.: `params` de las páginas es una `Promise` (`await params`), y `LayoutProps<"/">` es un tipo global.
+
+## Skills
+
+Usa fronted-design cuando vas a diseñar y construir interfaz de usuario.
 
 ## Idioma
 
