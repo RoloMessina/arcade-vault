@@ -1,6 +1,6 @@
 # SPEC 01 — MVP visual de Arcade Vault según las plantillas
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** ninguna (primera spec del repo)
 > **Fecha:** 2026-11-09
 > **Objetivo:** Alinear las 5 pantallas ya existentes de Arcade Vault con las plantillas de `references/templates/` (catálogo de 8 juegos, podio, franja de estadísticas, contador de créditos y detalles globales) sin tocar la lógica actual.

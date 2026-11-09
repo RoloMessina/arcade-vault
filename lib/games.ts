@@ -11,6 +11,10 @@ export type Game = {
   archivo: string;
   vidas: number;
   recordBase: number;
+  /** Partidas jugadas, en texto abreviado (p. ej. "12.4K") */
+  partidas: string;
+  /** Estrellas llenas sobre 5 */
+  dificultad: 1 | 2 | 3 | 4 | 5;
 };
 
 export type ScoreEntry = {
@@ -23,15 +27,16 @@ export type ScoreEntry = {
 const C = "#00f5ff";
 const M = "#ff006e";
 const Y = "#f5ff00";
+const G = "#00ff88";
 
 export const GAMES: Game[] = [
   {
-    id: "arkanoid",
-    titulo: "Arkanoid",
-    categoria: "Clásico",
-    corta: "Rompe todos los ladrillos con la pelota.",
+    id: "bloque-buster",
+    titulo: "Bloque Buster",
+    categoria: "Arcade",
+    corta: "Rebota la pelota y destruye muros de neón.",
     larga:
-      "Mueve la paleta, mantén la pelota en juego y destruye cada ladrillo del muro. Recoge potenciadores, esquiva los fallos y supera niveles cada vez más caóticos.",
+      "Pilota una nave-paleta y rebota un núcleo de plasma para pulverizar muros de bloques cromáticos. Cada nivel reorganiza la grilla en patrones imposibles. ¿Hasta dónde llegará tu racha?",
     accent: C,
     accent2: M,
     sprite: [
@@ -46,15 +51,17 @@ export const GAMES: Game[] = [
     ],
     archivo: "demo.html",
     vidas: 3,
-    recordBase: 48200,
+    recordBase: 28450,
+    partidas: "12.4K",
+    dificultad: 3,
   },
   {
-    id: "tetris",
-    titulo: "Tetris",
-    categoria: "Puzle",
-    corta: "Encaja las piezas y limpia líneas.",
+    id: "caida",
+    titulo: "Caída",
+    categoria: "Puzzle",
+    corta: "Encaja las piezas antes de que el techo te aplaste.",
     larga:
-      "Las piezas caen cada vez más rápido. Gíralas, encájalas y completa líneas para que desaparezcan. Un solo hueco mal puesto y la pila crece sin piedad.",
+      "Piezas geométricas descienden desde la oscuridad. Rótalas, encástralas y limpia líneas para sobrevivir. La velocidad aumenta sin piedad cada 10 líneas.",
     accent: M,
     accent2: C,
     sprite: [
@@ -69,17 +76,19 @@ export const GAMES: Game[] = [
     ],
     archivo: "demo.html",
     vidas: 1,
-    recordBase: 126500,
+    recordBase: 184220,
+    partidas: "31.8K",
+    dificultad: 3,
   },
   {
-    id: "snake",
-    titulo: "Snake",
-    categoria: "Clásico",
-    corta: "Come, crece y no te muerdas la cola.",
+    id: "serpentina",
+    titulo: "Serpentina",
+    categoria: "Arcade",
+    corta: "Crece sin morder tu propia cola.",
     larga:
-      "La serpiente crece con cada manzana que devora. Controla la dirección con las flechas, evita las paredes y no choques contigo misma. Cada nivel acelera el ritmo.",
-    accent: Y,
-    accent2: C,
+      "Una serpiente de luz recorre la grilla buscando núcleos magenta. Cada bocado la alarga y la hace más veloz. Un movimiento en falso y se devora a sí misma.",
+    accent: G,
+    accent2: M,
     sprite: [
       "........",
       ".####...",
@@ -92,15 +101,17 @@ export const GAMES: Game[] = [
     ],
     archivo: "snake.html",
     vidas: 3,
-    recordBase: 3400,
+    recordBase: 7820,
+    partidas: "9.1K",
+    dificultad: 3,
   },
   {
-    id: "pacman",
-    titulo: "Pac-Man",
+    id: "gloton",
+    titulo: "Glotón",
     categoria: "Arcade",
-    corta: "Devora puntos y huye de los fantasmas.",
+    corta: "Devora puntos y escapa de los fantasmas.",
     larga:
-      "Recorre el laberinto comiendo todos los puntos mientras cuatro fantasmas te persiguen. Las píldoras de poder invierten los papeles por unos segundos.",
+      "Un círculo glotón patrulla un laberinto coleccionando puntos luminosos. Cuatro espectros lo persiguen, pero cada cierto tiempo aparece una píldora que invierte los papeles.",
     accent: Y,
     accent2: M,
     sprite: [
@@ -115,17 +126,19 @@ export const GAMES: Game[] = [
     ],
     archivo: "demo.html",
     vidas: 3,
-    recordBase: 21400,
+    recordBase: 96400,
+    partidas: "27.2K",
+    dificultad: 3,
   },
   {
-    id: "invaders",
-    titulo: "Space Invaders",
-    categoria: "Disparos",
-    corta: "Defiende la Tierra de la invasión alienígena.",
+    id: "invasores",
+    titulo: "Invasores",
+    categoria: "Shooter",
+    corta: "Defiende el planeta de filas alienígenas.",
     larga:
-      "Oleadas de invasores descienden en formación. Dispara desde tu cañón, ocúltate tras los escudos y detén la invasión antes de que toque el suelo.",
-    accent: C,
-    accent2: Y,
+      "Olas de pixeles hostiles descienden formación tras formación. Mueve tu cañón en horizontal y abre fuego con precisión, antes de que toquen la superficie.",
+    accent: G,
+    accent2: C,
     sprite: [
       "..#.....#..",
       "...#...#...",
@@ -138,17 +151,19 @@ export const GAMES: Game[] = [
     ],
     archivo: "demo.html",
     vidas: 3,
-    recordBase: 15900,
+    recordBase: 54190,
+    partidas: "18.0K",
+    dificultad: 3,
   },
   {
-    id: "asteroids",
-    titulo: "Asteroids",
-    categoria: "Disparos",
-    corta: "Sobrevive en el espacio y pulveriza rocas.",
+    id: "rocas",
+    titulo: "Rocas",
+    categoria: "Shooter",
+    corta: "Pulveriza asteroides en gravedad cero.",
     larga:
-      "Pilota tu nave en un campo de asteroides. Dispara para fragmentarlos, usa el hiperespacio como último recurso y no dejes que ninguna roca te alcance.",
-    accent: M,
-    accent2: Y,
+      "Tu nave triangular flota en vacío absoluto. Dispara y rota para dividir rocas en fragmentos cada vez más pequeños. Cuidado con los OVNIs en el horizonte.",
+    accent: Y,
+    accent2: C,
     sprite: [
       "...##...",
       "...##...",
@@ -161,7 +176,59 @@ export const GAMES: Game[] = [
     ],
     archivo: "demo.html",
     vidas: 3,
-    recordBase: 9800,
+    recordBase: 41200,
+    partidas: "15.6K",
+    dificultad: 3,
+  },
+  {
+    id: "ranaria",
+    titulo: "Ranaria",
+    categoria: "Arcade",
+    corta: "Cruza la autopista de pixeles.",
+    larga:
+      "Salta entre carriles de coches a toda velocidad y troncos a la deriva en el río. Llega a los nenúfares antes de que se acabe el tiempo.",
+    accent: G,
+    accent2: Y,
+    sprite: [
+      "..#..#..",
+      ".##..##.",
+      ".######.",
+      "..####..",
+      ".######.",
+      "##.##.##",
+      "#......#",
+      "........",
+    ],
+    archivo: "demo.html",
+    vidas: 3,
+    recordBase: 18900,
+    partidas: "6.4K",
+    dificultad: 3,
+  },
+  {
+    id: "duelo-pixel",
+    titulo: "Duelo Pixel",
+    categoria: "Versus",
+    corta: "Dos paletas. Una pelota. Reflejos máximos.",
+    larga:
+      "El duelo más puro: dos paletas verticales se enfrentan por rebotar una pelota luminosa. Modo solitario contra la CPU o partida local a dos jugadores.",
+    accent: C,
+    accent2: M,
+    sprite: [
+      "#.......",
+      "#.......",
+      "#.......",
+      "#..#....",
+      "....#..#",
+      ".......#",
+      ".......#",
+      ".......#",
+    ],
+    archivo: "demo.html",
+    vidas: 1,
+    recordBase: 24,
+    partidas: "4.2K",
+    dificultad: 3,
   },
 ];
 
@@ -186,10 +253,12 @@ const NOMBRES = [
 
 /** Puntuaciones de ejemplo. Un backend real (REST / Supabase) las reemplazaría. */
 export function seedScores(game: Game): ScoreEntry[] {
+  // Juegos con marcas bajas (p. ej. Duelo Pixel) redondean de 1 en 1 para no empatar ni caer a 0.
+  const paso = game.recordBase < 100 ? 1 : 10;
   return NOMBRES.map((name, i) => ({
     gameId: game.id,
     name,
-    score: Math.round((game.recordBase * (1 - i * 0.085 - ((i * 7 + game.id.length) % 5) * 0.012)) / 10) * 10,
+    score: Math.round((game.recordBase * (1 - i * 0.085 - ((i * 7 + game.id.length) % 5) * 0.012)) / paso) * paso,
     date: `2026-10-${String(28 - i * 2).padStart(2, "0")}`,
   }));
 }

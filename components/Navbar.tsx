@@ -11,6 +11,16 @@ const LINKS = [
   { href: "/salon-de-la-fama", label: "Salón de la Fama" },
 ];
 
+/** Contador decorativo: texto fijo, sin lógica. */
+function Creditos() {
+  return (
+    <div className="coin-counter">
+      <span className="coin" aria-hidden="true" />
+      <span>Créditos · 03</span>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -34,6 +44,7 @@ export default function Navbar() {
   const initial = (user?.name ?? "?").charAt(0).toUpperCase();
 
   return (
+    <>
     <header className="sticky top-0 z-50 border-b-2 border-[var(--line)] bg-[#0a0a0f]/85 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4" aria-label="Principal">
         <Logo />
@@ -46,7 +57,9 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden md:block relative">
+        <div className="hidden items-center gap-6 md:flex">
+          <Creditos />
+          <div className="relative">
           {user ? (
             <>
               <button
@@ -79,6 +92,7 @@ export default function Navbar() {
               Iniciar Sesión
             </Link>
           )}
+          </div>
         </div>
 
         <button
@@ -90,7 +104,9 @@ export default function Navbar() {
           <span className="block h-[2px] w-5 bg-current shadow-[0_-7px_0_currentColor,0_7px_0_currentColor]" />
         </button>
       </nav>
+    </header>
 
+      {/* Fuera del <header>: su backdrop-blur haría de bloque contenedor de los `fixed` y los recortaría. */}
       {open && <div className="overlay !z-[55]" onClick={() => setOpen(false)} aria-hidden="true" />}
       <aside className="drawer md:hidden" data-open={open} aria-hidden={!open} inert={!open}>
         <button className="btn btn-magenta btn-sm self-end" onClick={() => setOpen(false)}>
@@ -107,7 +123,8 @@ export default function Navbar() {
             {l.label}
           </Link>
         ))}
-        <div className="mt-auto">
+        <div className="mt-auto space-y-6">
+          <Creditos />
           {user ? (
             <div className="space-y-3">
               <p className="text-sm uppercase">{user.name}</p>
@@ -122,6 +139,6 @@ export default function Navbar() {
           )}
         </div>
       </aside>
-    </header>
+    </>
   );
 }

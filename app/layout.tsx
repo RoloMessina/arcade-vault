@@ -25,10 +25,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es" className={`${press.variable} ${courier.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <div className="vault-bg" aria-hidden="true" />
+        <div className="vault-noise" aria-hidden="true" />
         <Navbar />
         <main className="flex-1 flex flex-col">{children}</main>
         <footer className="py-8 text-center text-sm text-[var(--muted)]">
-          © 2026 ARCADE VAULT · HECHO CON PÍXELES Y NEÓN
+          © 2026 ARCADE VAULT · HECHO CON PÍXELES Y NEÓN · v2.6.0
         </footer>
       </body>
     </html>

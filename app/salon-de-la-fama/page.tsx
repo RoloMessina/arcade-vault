@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import HallOfFame from "@/components/HallOfFame";
 
 export const metadata: Metadata = { title: "Salón de la Fama · ARCADE VAULT" };
@@ -9,6 +10,11 @@ export default function SalonPage() {
       <h1 className="neon-yellow mb-2 text-center font-pixel text-xl leading-snug sm:text-3xl">SALÓN DE LA FAMA</h1>
       <p className="mb-10 text-center text-[var(--muted)]">Los diez mejores jugadores de cada juego.</p>
       <HallOfFame />
+      <div className="mt-10 text-center">
+        <Link href="/" className="btn btn-lg">
+          Volver a la biblioteca
+        </Link>
+      </div>
     </section>
   );
 }

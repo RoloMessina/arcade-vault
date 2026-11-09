@@ -10,6 +10,7 @@
   --muted: #9a9ab8;
   --line: #26263f;
   --gold: #ffd23f;
+  --green: #00ff88;
   --silver: #d6dbe8;
   --bronze: #ff9a4d;
 }
@@ -48,6 +49,16 @@ body::after {
     rgba(0, 0, 0, 0) 2px,
     rgba(0, 0, 0, 0.22) 3px
   );
+}
+
+/* Ruido de grano sutil sobre el fondo. No intercepta clics. */
+.vault-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
 /* Grilla en perspectiva animada */
@@ -299,6 +310,172 @@ body::after {
 .nav-link[aria-current="page"]::after,
 .nav-link:hover::after {
   transform: scaleX(1);
+}
+
+/* ---------- Detalle: etiquetas y franja de estadísticas ---------- */
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.detail-tags li {
+  font-family: var(--font-press), monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 0;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.stat-strip > div {
+  padding: 0.9rem;
+  background: var(--panel);
+  min-width: 0;
+}
+.stat-strip dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.stat-strip dd {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-press), monospace;
+  font-size: 0.85rem;
+  color: var(--cyan);
+  text-shadow: 0 0 6px rgba(0, 245, 255, 0.5);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 420px) {
+  .stat-strip dd {
+    font-size: 0.7rem;
+  }
+}
+
+/* ---------- Salón: podio ---------- */
+/* DOM en orden 1-2-3 (lectura y móvil); en escritorio se muestra 2-1-3. */
+.podium {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  align-items: end;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+@media (min-width: 720px) {
+  .podium {
+    grid-template-columns: 1fr 1.2fr 1fr;
+  }
+  .podium-slot.silver {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .podium-slot.gold {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .podium-slot.bronze {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+.podium-slot {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 1.1rem 0.9rem 1rem;
+  text-align: center;
+  min-width: 0;
+}
+.podium-slot p {
+  margin: 0;
+}
+.podium-slot.gold {
+  border-color: var(--gold);
+  box-shadow: 0 0 22px rgba(255, 210, 63, 0.35);
+}
+.podium-slot.silver {
+  border-color: var(--silver);
+}
+.podium-slot.bronze {
+  border-color: var(--bronze);
+}
+.podium-crown {
+  font-family: var(--font-press), monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.podium-slot .rank-num {
+  font-family: var(--font-press), monospace;
+  font-size: 1.6rem;
+  text-shadow: 0 0 12px currentColor;
+}
+.podium-slot.gold .rank-num {
+  color: var(--gold);
+  font-size: 2.2rem;
+  margin-top: 0.25rem;
+}
+.podium-slot.silver .rank-num {
+  color: var(--silver);
+}
+.podium-slot.bronze .rank-num {
+  color: var(--bronze);
+}
+.podium-slot .name {
+  margin-top: 0.5rem;
+  font-family: var(--font-press), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+.podium-slot .score {
+  margin-top: 0.5rem;
+  font-family: var(--font-press), monospace;
+  font-size: 0.95rem;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(0, 245, 255, 0.5);
+}
+.podium-slot.gold .score {
+  font-size: 1.2rem;
+}
+.podium-slot .date {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+/* Contador decorativo de créditos */
+.coin-counter {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-press), monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--yellow);
+  white-space: nowrap;
+}
+.coin-counter .coin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8b0, #f5ff00 60%, #b0b800);
+  box-shadow: 0 0 8px var(--yellow);
 }
 
 .drawer {

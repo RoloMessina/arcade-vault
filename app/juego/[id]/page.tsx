@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Cover } from "@/components/Sprite";
+import GameStats from "@/components/GameStats";
 import Leaderboard from "@/components/Leaderboard";
 import { GAMES, getGame } from "@/lib/games";
 
@@ -24,16 +25,19 @@ export default async function JuegoPage({ params }: { params: Promise<{ id: stri
           <div className="panel overflow-hidden" style={{ "--accent": game.accent } as React.CSSProperties}>
             <Cover game={game} />
           </div>
+          <ul className="detail-tags" aria-label="Características">
+            {[game.categoria, "1 jugador", "Teclado / táctil", "Retro 1985"].map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
           <h1
             className="font-pixel text-2xl leading-snug sm:text-4xl"
             style={{ color: "#fff", textShadow: `0 0 6px #fff, 0 0 18px ${game.accent}, 0 0 44px ${game.accent}` }}
           >
             {game.titulo}
           </h1>
-          <p className="w-fit border border-[var(--line)] px-2 py-1 text-xs uppercase text-[var(--muted)]">
-            {game.categoria} · {game.vidas} {game.vidas === 1 ? "vida" : "vidas"}
-          </p>
           <p className="max-w-prose text-lg leading-relaxed text-[var(--fg)]/90">{game.larga}</p>
+          <GameStats game={game} />
           <div>
             <Link
               href={`/juego/${game.id}/jugar`}

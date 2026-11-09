@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Leaderboard from "./Leaderboard";
+import Podium from "./Podium";
 import { buildBoard, fmtScore, GAMES } from "@/lib/games";
 import { useGuestBest, useSavedScores, useUser } from "@/lib/store";
 
@@ -43,6 +44,8 @@ export default function HallOfFame() {
           <p className="neon-yellow font-pixel text-lg tabular-nums">{mine === null ? "—" : fmtScore(mine)}</p>
         </div>
       )}
+
+      <Podium game={game} />
 
       <div className="panel p-2 sm:p-4" style={{ "--accent": game.accent } as React.CSSProperties}>
         <Leaderboard game={game} />
