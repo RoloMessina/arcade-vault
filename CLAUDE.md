@@ -2,15 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Comandos
-
-```bash
-npm run dev      # servidor de desarrollo
-npm run build    # build de producción (también valida tipos)
-npm run lint     # eslint
-npx tsc --noEmit # chequeo de tipos
-```
-
 No hay tests configurados.
 
 ## Next.js no estándar

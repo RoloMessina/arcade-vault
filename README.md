@@ -14,3 +14,12 @@ https://github.com/Klerith/fernando-skills
 ```bash
 npx skills@latest add Klerith/fernando-skills
 ```
+## Comandos
+
+```bash
+npm run dev      # servidor de desarrollo
+npm run build    # build de producción (también valida tipos)
+npm run lint     # eslint
+npx tsc --noEmit # chequeo de tipos
+```
+
