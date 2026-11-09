@@ -8,6 +8,10 @@ No hay tests configurados.
 
 AGENTS.md avisa que esta versión de Next (16.x) tiene cambios incompatibles con lo que conoces. Antes de escribir código, lee la guía relevante en `node_modules/next/dist/docs/`. Ej.: `params` de las páginas es una `Promise` (`await params`), y `LayoutProps<"/">` es un tipo global.
 
+## Skills
+
+Usa fronted-design cuando vas a diseñar y construir interfaz de usuario.
+
 ## Idioma
 
 Toda la UI y los textos están en español (ver `prompt-design.md`, la especificación visual y funcional). Estética: fondo `#0a0a0f`, neón cian/magenta/amarillo, fuentes Press Start 2P (`font-pixel`) y Courier Prime. Los estilos viven en clases personalizadas de `app/globals.css` (`.btn`, `.panel`, `.field`, `.chip`, `.crt-*`…), con Tailwind v4 solo como apoyo.
