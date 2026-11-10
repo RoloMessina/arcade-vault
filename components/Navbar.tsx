@@ -7,7 +7,8 @@ import Logo from "./Logo";
 import { logout, useUser } from "@/lib/store";
 
 const LINKS = [
-  { href: "/", label: "Biblioteca" },
+  { href: "/", label: "Inicio" },
+  { href: "/biblioteca", label: "Biblioteca" },
   { href: "/salon-de-la-fama", label: "Salón de la Fama" },
 ];
 
@@ -32,7 +33,11 @@ export default function Navbar() {
   if (pathname.endsWith("/jugar")) return null;
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" || pathname.startsWith("/juego") : pathname.startsWith(href);
+    href === "/"
+      ? pathname === "/"
+      : href === "/biblioteca"
+        ? pathname.startsWith("/biblioteca") || pathname.startsWith("/juego")
+        : pathname.startsWith(href);
 
   const salir = () => {
     logout();
@@ -46,7 +51,7 @@ export default function Navbar() {
   return (
     <>
     <header className="av-nav" role="banner">
-        <Link href="/" className="logo" aria-label="ARCADE VAULT, ir a la biblioteca">
+        <Link href="/" className="logo" aria-label="ARCADE VAULT, ir al inicio">
           <span className="logo-mark" aria-hidden="true" />
           <span className="logo-text">
             <span className="c">ARCADE</span> <span className="m">VAULT</span>

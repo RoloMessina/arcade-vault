@@ -191,7 +191,7 @@ export default function Player({ game }: { game: Game }) {
               <button className="btn flex-1" onClick={restart}>
                 Jugar de nuevo
               </button>
-              <Link href="/" className="btn btn-magenta flex-1">
+              <Link href="/biblioteca" className="btn btn-magenta flex-1">
                 Volver al vault
               </Link>
             </div>

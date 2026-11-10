@@ -1,6 +1,6 @@
 # SPEC 02 — Home (landing) de Arcade Vault según la plantilla
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01 (catálogo de 8 juegos, `Cover`, navbar con créditos, tokens CSS)
 > **Fecha:** 2026-11-10
 > **Objetivo:** Crear la landing de `home.jsx` en `/`, mover la biblioteca a `/biblioteca` y añadir "Inicio" a la navbar, sin tocar la lógica de juegos, puntuaciones ni sesión.
