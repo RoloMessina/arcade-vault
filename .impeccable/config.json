@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-11-10T13:58:57.063Z",
+        "reason": "título ARCADE VAULT con degradado: especificado en references/templates/styles.css (.av-hero h1); el usuario pidió copiar la referencia exactamente"
+      }
+    ]
+  }
+}
