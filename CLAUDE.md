@@ -18,9 +18,10 @@ Toda la UI y los textos están en español (ver `prompt-design.md`, la especific
 
 ## Arquitectura
 
-- **Rutas** (`app/`): `/` biblioteca, `/juego/[id]` detalle, `/juego/[id]/jugar` reproductor, `/acceso`, `/salon-de-la-fama`. `app/template.tsx` aplica la transición de página.
+- **Rutas** (`app/`): `/` biblioteca, `/juego/[id]` detalle, `/juego/[id]/jugar` reproductor, `/acceso`, `/salon-de-la-fama`, `/acerca-de` (misión + formulario de contacto). `app/template.tsx` aplica la transición de página.
 - **Datos** (`lib/games.ts`): catálogo `GAMES` (único origen de verdad de juegos, sprites pixel-art y colores), puntuaciones semilla deterministas y `buildBoard()` que las mezcla con las guardadas.
 - **Estado** (`lib/store.ts`): sesión, puntuaciones y mejor marca de invitado en `localStorage` vía `useSyncExternalStore` (snapshot de servidor `null` para evitar errores de hidratación). Es un backend simulado; los puntos de integración REST/Supabase están marcados con comentarios `BACKEND`.
 - **Invitados vs. cuenta**: los invitados solo guardan su marca local (`recordGuestBest`); las puntuaciones con cuenta (`saveScore`) entran en los rankings.
 - **Navbar** se oculta en rutas que terminan en `/jugar`.
+- **Contacto** (`/acerca-de`): el formulario (`components/about/ContactForm.tsx`, cliente, `useActionState`) llama a la Server Action `enviarContacto` de `app/acerca-de/actions.ts`, que valida en servidor y envía un correo de texto plano con el SDK `resend` (remitente `onboarding@resend.dev`, `replyTo` = correo del usuario). La terminal de éxito solo aparece si Resend confirma; cualquier fallo devuelve un error genérico y se registra con `console.error`. Variables de entorno solo de servidor (ver `.env.example`; copiar a `.env.local`): `RESEND_API_KEY` y `CONTACT_TO_EMAIL` (con el remitente de prueba debe ser el correo de la cuenta de Resend). Sin anti-spam más allá de la validación.
 - **Juegos HTML** (`public/games/`): se cargan en un iframe con `sandbox="allow-scripts"` desde `components/Player.tsx`. Protocolo por `postMessage`: juego→portal `{type:"arcade:state", score, lives, level}` y `{type:"arcade:gameover", score}`; portal→juego `arcade:pause` / `arcade:resume`. Solo `snake.html` es un juego real; el resto usa `demo.html` (minijuego de demostración). El portal valida `e.source` contra el iframe.

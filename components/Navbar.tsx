@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/", label: "Inicio" },
   { href: "/biblioteca", label: "Biblioteca" },
   { href: "/salon-de-la-fama", label: "Salón de la Fama" },
+  { href: "/acerca-de", label: "Sobre nosotros" },
 ];
 
 /** Contador decorativo: texto fijo, sin lógica. */
