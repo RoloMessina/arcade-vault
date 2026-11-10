@@ -1,0 +1,32 @@
+- generic [active] [ref=f11e1]:
+  - main [ref=f11e2]:
+    - generic [ref=f11e4]:
+      - generic [ref=f11e5]:
+        - generic [ref=f11e6]:
+          - text: JUGADOR
+          - generic [ref=f11e7]: INVITADO
+        - generic [ref=f11e8]:
+          - text: PUNTUACIÓN
+          - generic [ref=f11e9]: "0"
+        - generic [ref=f11e10]:
+          - text: VIDAS
+          - generic [ref=f11e11]: "3"
+        - generic [ref=f11e12]:
+          - text: NIVEL
+          - generic [ref=f11e13]: "1"
+        - generic [ref=f11e14]:
+          - button "Pausa" [disabled]
+          - link "Salir" [ref=f11e15] [cursor=pointer]:
+            - /url: /juego/serpentina
+      - generic [ref=f11e16]:
+        - status [ref=f11e29]: CARGANDO...
+        - generic [ref=f11e30]: SERPENTINA
+      - paragraph [ref=f11e33]: "Controles: flechas o WASD · en móvil, desliza o toca la pantalla."
+  - contentinfo [ref=f11e34]: © 2026 ARCADE VAULT · HECHO CON PÍXELES Y NEÓN · v2.6.0
+  - button "Open Next.js Dev Tools" [ref=f11e40] [cursor=pointer]:
+    - generic [ref=f11e43]:
+      - text: Compiling
+      - generic [ref=f11e44]:
+        - generic [ref=f11e45]: .
+        - generic [ref=f11e46]: .
+        - generic [ref=f11e47]: .

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { fmtScore, type Game } from "@/lib/games";
 import { recordGuestBest, saveScore, useUser } from "@/lib/store";
 
@@ -31,6 +31,13 @@ export default function Player({ game }: { game: Game }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [run, setRun] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  // El iframe solo se crea en el cliente: si viniera en el HTML del servidor, podría cargar
+  // antes de la hidratación y su `onLoad` se perdería (carga infinita).
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const [paused, setPaused] = useState(false);
   const [hud, setHud] = useState({ score: 0, lives: game.vidas, level: 1 });
   const [final, setFinal] = useState<number | null>(null);
@@ -110,6 +117,7 @@ export default function Player({ game }: { game: Game }) {
 
       <div className="crt-bezel">
         <div className="crt-screen">
+          {mounted && (
           <iframe
             key={run}
             ref={frame}
@@ -121,6 +129,7 @@ export default function Player({ game }: { game: Game }) {
               frame.current?.focus();
             }}
           />
+          )}
           {!loaded && (
             <div className="absolute inset-0 z-10 grid place-items-center bg-black">
               <div className="scan-wipe" />
