@@ -1,6 +1,6 @@
 # SPEC 03 — Página "Acerca de" y envío de contacto con Resend
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 02 (navbar con `Inicio/Biblioteca/Salón`, `RevealOnScroll`, `.btn-xl`, tokens CSS)
 > **Fecha:** 2026-11-10
 > **Objetivo:** Crear la página `/acerca-de` según `about.jsx` (misión, tres destacados y formulario "Contáctanos") y enviar el mensaje por correo con Resend mediante una Server Action, mostrando la terminal de éxito solo cuando Resend confirme el envío.
