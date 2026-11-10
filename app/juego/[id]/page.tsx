@@ -16,7 +16,7 @@ export default async function JuegoPage({ params }: { params: Promise<{ id: stri
 
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-10">
-      <Link href="/" className="btn btn-magenta btn-sm mb-8">
+      <Link href="/biblioteca" className="btn btn-magenta btn-sm mb-8">
         ← Volver al vault
       </Link>
 

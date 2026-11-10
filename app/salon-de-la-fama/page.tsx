@@ -11,7 +11,7 @@ export default function SalonPage() {
       <p className="mb-10 text-center text-[var(--muted)]">Los diez mejores jugadores de cada juego.</p>
       <HallOfFame />
       <div className="mt-10 text-center">
-        <Link href="/" className="btn btn-lg">
+        <Link href="/biblioteca" className="btn btn-lg">
           Volver a la biblioteca
         </Link>
       </div>
