@@ -45,21 +45,26 @@ export default function Navbar() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 border-b-2 border-[var(--line)] bg-[#0a0a0f]/85 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4" aria-label="Principal">
-        <Logo />
+    <header className="av-nav" role="banner">
+        <Link href="/" className="logo" aria-label="ARCADE VAULT, ir a la biblioteca">
+          <span className="logo-mark" aria-hidden="true" />
+          <span className="logo-text">
+            <span className="c">ARCADE</span> <span className="m">VAULT</span>
+          </span>
+        </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <nav className="links" aria-label="Principal">
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="nav-link" aria-current={isActive(l.href) ? "page" : undefined}>
+            <Link key={l.href} href={l.href} aria-current={isActive(l.href) ? "page" : undefined}>
               {l.label}
             </Link>
           ))}
-        </div>
+        </nav>
 
-        <div className="hidden items-center gap-6 md:flex">
-          <Creditos />
-          <div className="relative">
+        <div className="spacer" />
+
+        <Creditos />
+        <div className="auth-btn relative">
           {user ? (
             <>
               <button
@@ -88,27 +93,25 @@ export default function Navbar() {
               )}
             </>
           ) : (
-            <Link href="/acceso" className="btn btn-sm">
+            <Link href="/acceso" className="av-btn">
               Iniciar Sesión
             </Link>
           )}
-          </div>
         </div>
 
         <button
-          className="md:hidden grid h-11 w-11 place-items-center border-2 border-[var(--cyan)] text-[var(--cyan)] cursor-pointer"
+          className="av-btn ghost hamburger"
           onClick={() => setOpen(true)}
           aria-label="Abrir menú"
           aria-expanded={open}
         >
-          <span className="block h-[2px] w-5 bg-current shadow-[0_-7px_0_currentColor,0_7px_0_currentColor]" />
+          ≡
         </button>
-      </nav>
     </header>
 
       {/* Fuera del <header>: su backdrop-blur haría de bloque contenedor de los `fixed` y los recortaría. */}
       {open && <div className="overlay !z-[55]" onClick={() => setOpen(false)} aria-hidden="true" />}
-      <aside className="drawer md:hidden" data-open={open} aria-hidden={!open} inert={!open}>
+      <aside className="drawer" data-open={open} aria-hidden={!open} inert={!open}>
         <button className="btn btn-magenta btn-sm self-end" onClick={() => setOpen(false)}>
           Cerrar ✕
         </button>

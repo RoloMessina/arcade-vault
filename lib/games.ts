@@ -6,6 +6,8 @@ export type Game = {
   larga: string;
   accent: string;
   accent2: string;
+  /** Clase CSS de la portada de la biblioteca (ver globals.css) */
+  portada: string;
   sprite: string[];
   /** Archivo HTML del juego dentro de /public/games */
   archivo: string;
@@ -32,6 +34,7 @@ const G = "#00ff88";
 export const GAMES: Game[] = [
   {
     id: "bloque-buster",
+    portada: "cover-bricks",
     titulo: "Bloque Buster",
     categoria: "Arcade",
     corta: "Rebota la pelota y destruye muros de neón.",
@@ -57,6 +60,7 @@ export const GAMES: Game[] = [
   },
   {
     id: "caida",
+    portada: "cover-tetro",
     titulo: "Caída",
     categoria: "Puzzle",
     corta: "Encaja las piezas antes de que el techo te aplaste.",
@@ -82,6 +86,7 @@ export const GAMES: Game[] = [
   },
   {
     id: "serpentina",
+    portada: "cover-snake",
     titulo: "Serpentina",
     categoria: "Arcade",
     corta: "Crece sin morder tu propia cola.",
@@ -107,6 +112,7 @@ export const GAMES: Game[] = [
   },
   {
     id: "gloton",
+    portada: "cover-glot",
     titulo: "Glotón",
     categoria: "Arcade",
     corta: "Devora puntos y escapa de los fantasmas.",
@@ -132,6 +138,7 @@ export const GAMES: Game[] = [
   },
   {
     id: "invasores",
+    portada: "cover-invaders",
     titulo: "Invasores",
     categoria: "Shooter",
     corta: "Defiende el planeta de filas alienígenas.",
@@ -157,6 +164,7 @@ export const GAMES: Game[] = [
   },
   {
     id: "rocas",
+    portada: "cover-rocas",
     titulo: "Rocas",
     categoria: "Shooter",
     corta: "Pulveriza asteroides en gravedad cero.",
@@ -182,6 +190,7 @@ export const GAMES: Game[] = [
   },
   {
     id: "ranaria",
+    portada: "cover-rana",
     titulo: "Ranaria",
     categoria: "Arcade",
     corta: "Cruza la autopista de pixeles.",
@@ -207,6 +216,7 @@ export const GAMES: Game[] = [
   },
   {
     id: "duelo-pixel",
+    portada: "cover-duelo",
     titulo: "Duelo Pixel",
     categoria: "Versus",
     corta: "Dos paletas. Una pelota. Reflejos máximos.",

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Press_Start_2P, Courier_Prime } from "next/font/google";
+import { Press_Start_2P, Courier_Prime, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -15,6 +15,12 @@ const courier = Courier_Prime({
   subsets: ["latin", "latin-ext"],
 });
 
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  weight: ["400", "500", "700"],
+  subsets: ["latin", "latin-ext"],
+});
+
 export const metadata: Metadata = {
   title: "ARCADE VAULT",
   description: "Portal de juegos arcade retro. Inserta una moneda para jugar.",
@@ -22,13 +28,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${press.variable} ${courier.variable} h-full antialiased`}>
+    <html lang="es" className={`${press.variable} ${courier.variable} ${jetbrains.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <div className="vault-bg" aria-hidden="true" />
         <div className="vault-noise" aria-hidden="true" />
         <Navbar />
         <main className="flex-1 flex flex-col">{children}</main>
-        <footer className="py-8 text-center text-sm text-[var(--muted)]">
+        <footer className="av-footer">
           © 2026 ARCADE VAULT · HECHO CON PÍXELES Y NEÓN · v2.6.0
         </footer>
       </body>
