@@ -62,7 +62,7 @@ Cada paso deja la app compilando y navegable. Antes de escribir código, leer la
 - [ ] "ACTIVIDAD EN VIVO" muestra 7 filas de últimas puntuaciones y 5 de top jugadores, con las 3 primeras destacadas.
 - [ ] "PRECIOS" muestra la tarjeta "JUGADOR VAULT · $0 / SIEMPRE" con 6 ventajas y 3 preguntas de FAQ.
 - [ ] Los botones de CTA llevan a: `/biblioteca` ("Explorar juegos", "Ver todos los juegos", "Insertar moneda"), `/acceso` ("Crear cuenta", "Empezar gratis") y `/salon-de-la-fama` ("Ver salón").
-- [ ] `/biblioteca` conserva 8 tarjetas, chips `Todos, Arcade, Puzzle, Shooter, Versus`, la búsqueda y el estado "SIN RESULTADOS".
+- [ ] `/biblioteca` conserva 8 tarjetas, chips `Todos, Arcade, Puzzle, Shooter, Versus`, la búsqueda y el estado "NO HAY RESULTADOS".
 - [ ] La navbar y el drawer muestran `Inicio, Biblioteca, Salón de la Fama` en ese orden, y `Créditos · 03` sigue visible.
 - [ ] `Inicio` solo está activo en `/`; `Biblioteca` está activo en `/biblioteca` y en `/juego/[id]`.
 - [ ] "Volver a la biblioteca" en `/salon-de-la-fama`, el detalle y el reproductor lleva a `/biblioteca`.

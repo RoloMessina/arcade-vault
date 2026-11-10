@@ -91,7 +91,7 @@ Cada paso deja la app compilando y navegable. Antes de escribir código, leer la
 - [ ] `npm run lint` no reporta errores nuevos.
 - [ ] `/` muestra exactamente 8 tarjetas con los títulos de la tabla del modelo de datos.
 - [ ] Los chips de `/` son `Todos, Arcade, Puzzle, Shooter, Versus` y cada uno filtra correctamente.
-- [ ] Buscar "serp" muestra solo Serpentina; buscar "zzz" muestra el estado "SIN RESULTADOS".
+- [ ] Buscar "serp" muestra solo Serpentina; buscar "zzz" muestra el estado "NO HAY RESULTADOS".
 - [ ] `/juego/serpentina/jugar` carga `snake.html`; los otros 7 juegos cargan `demo.html`.
 - [ ] `/juego/ranaria` y `/juego/duelo-pixel` muestran portada con sprite propio, no vacía.
 - [ ] `/juego/[id]` muestra las 4 etiquetas, `Partidas` con el valor de la tabla y `Dificultad` con 3 estrellas llenas de 5.
