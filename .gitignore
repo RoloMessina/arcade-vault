@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Screenshots de Playwright
 .playwrite-screemshots/
+
+# Logs y snapshots de Playwright MCP
+.playwright-mcp/
