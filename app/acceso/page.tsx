@@ -38,6 +38,7 @@ export default function AccesoPage() {
       <div className="panel w-full max-w-md p-6 sm:p-8">
         <div className="mb-8 text-center">
           <Logo />
+          <p className="mt-3 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Acceso al sistema · v2.6</p>
         </div>
 
         <div className="mb-6 grid grid-cols-2 gap-2" role="tablist" aria-label="Acceso">
@@ -117,6 +118,9 @@ export default function AccesoPage() {
           Jugar como invitado
         </button>
         <p className="mt-3 text-center text-xs text-[var(--muted)]">Como invitado, tus puntuaciones no se guardan en el Salón de la Fama.</p>
+        <p className="mt-5 text-center text-[0.7rem] uppercase tracking-[0.1em] text-[var(--muted)]">
+          Al entrar aceptas los términos del Salón Arcade
+        </p>
       </div>
     </section>
   );
