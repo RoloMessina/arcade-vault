@@ -169,7 +169,7 @@ export const GAMES: Game[] = [
     categoria: "Shooter",
     corta: "Pulveriza asteroides en gravedad cero.",
     larga:
-      "Tu nave triangular flota en vacío absoluto. Dispara y rota para dividir rocas en fragmentos cada vez más pequeños. Cuidado con los OVNIs en el horizonte.",
+      "Tu nave triangular flota en vacío absoluto. Dispara y rota para dividir rocas en fragmentos cada vez más pequeños.",
     accent: Y,
     accent2: C,
     sprite: [
@@ -182,7 +182,7 @@ export const GAMES: Game[] = [
       "##....##",
       "........",
     ],
-    archivo: "demo.html",
+    archivo: "asteroids.html",
     vidas: 3,
     recordBase: 41200,
     partidas: "15.6K",
