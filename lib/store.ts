@@ -2,6 +2,7 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 import type { ScoreEntry } from "./games";
+import { createClient } from "./supabase/client";
 
 /**
  * Persistencia local mínima.
@@ -13,6 +14,7 @@ import type { ScoreEntry } from "./games";
 const listeners = new Set<() => void>();
 
 function subscribe(cb: () => void) {
+  startAuth();
   listeners.add(cb);
   window.addEventListener("storage", cb);
   return () => {
@@ -57,20 +59,80 @@ function useStored<T>(key: string, fallback: T): T {
 
 /* ---------- Sesión ---------- */
 
+/**
+ * Cuenta real: sesión de Supabase Auth (cookies) + `profiles.username`.
+ * Invitado: solo en localStorage (`av:user` con `guest: true`), sin usuario en Supabase.
+ */
 export type User = { name: string; guest: boolean };
 const USER_KEY = "av:user";
 const NO_USER = null as User | null;
 
+let account: User | null = null;
+let authStarted = false;
+let authSeq = 0;
+
+function supabaseConfigurado() {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+}
+
+async function applySession(userId: string | null) {
+  const seq = ++authSeq;
+  if (!userId) {
+    if (account) {
+      account = null;
+      listeners.forEach((l) => l());
+    }
+    return;
+  }
+  const { data, error } = await createClient().from("profiles").select("username").eq("id", userId).maybeSingle();
+  if (seq !== authSeq) return; // llegó una sesión más reciente
+  if (error) console.error("store: no se pudo leer el perfil:", error.message);
+  const name = data?.username ?? "JUGADOR";
+  if (account?.name === name) return; // p. ej. TOKEN_REFRESHED: nada que actualizar
+  account = { name, guest: false };
+  listeners.forEach((l) => l());
+}
+
+/** Engancha una sola vez la sesión de Supabase al store (solo en el navegador). */
+function startAuth() {
+  if (authStarted || typeof window === "undefined") return;
+  authStarted = true;
+  // Las sesiones simuladas anteriores (no invitado) ya no cuentan.
+  try {
+    const old = JSON.parse(read(USER_KEY) ?? "null") as User | null;
+    if (old && !old.guest) write(USER_KEY, null);
+  } catch {
+    write(USER_KEY, null);
+  }
+  if (!supabaseConfigurado()) return;
+  // INITIAL_SESSION se emite al suscribirse; el callback no debe esperar llamadas a Supabase.
+  createClient().auth.onAuthStateChange((_evento, session) => {
+    setTimeout(() => void applySession(session?.user.id ?? null), 0);
+  });
+}
+
 export function useUser() {
-  return useStored<User | null>(USER_KEY, NO_USER);
+  const guest = useStored<User | null>(USER_KEY, NO_USER);
+  const cuenta = useSyncExternalStore(
+    subscribe,
+    () => account,
+    () => null,
+  );
+  return cuenta ?? (guest?.guest ? guest : null);
 }
 
-/** BACKEND: aquí iría supabase.auth.signInWithPassword / OAuth (Google, GitHub). */
-export function login(name: string, guest = false) {
-  write(USER_KEY, JSON.stringify({ name, guest } satisfies User));
+/** Entra como invitado: solo local, sin cuenta ni ranking. */
+export function loginGuest() {
+  write(USER_KEY, JSON.stringify({ name: "INVITADO", guest: true } satisfies User));
 }
 
-export function logout() {
+export async function logout() {
+  if (supabaseConfigurado()) {
+    const { error } = await createClient().auth.signOut();
+    if (error) console.error("store: signOut falló:", error.message);
+  }
+  authSeq++;
+  account = null;
   write(USER_KEY, null);
 }
 

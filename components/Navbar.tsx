@@ -40,11 +40,12 @@ export default function Navbar() {
         ? pathname.startsWith("/biblioteca") || pathname.startsWith("/juego")
         : pathname.startsWith(href);
 
-  const salir = () => {
-    logout();
+  const salir = async () => {
     setMenu(false);
     setOpen(false);
+    await logout(); // cierra la sesión de Supabase (si la hay) y la del invitado
     router.push("/");
+    router.refresh();
   };
 
   const initial = (user?.name ?? "?").charAt(0).toUpperCase();
