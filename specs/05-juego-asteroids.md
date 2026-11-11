@@ -1,6 +1,6 @@
 # SPEC 05 — Juego real «Rocas» (Asteroids) adaptado al portal
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01 (catálogo `GAMES`, `Player.tsx` y protocolo `postMessage`), SPEC 04 (solo indirectamente: el reproductor ya distingue cuenta e invitado al guardar la marca)
 > **Fecha:** 2026-11-11
 > **Objetivo:** Sustituir el minijuego de demostración de «Rocas» por el clon de Asteroids de `references/started-games/02-asteroids`, adaptado a `public/games/asteroids.html` con la estética neón del portal y el protocolo `arcade:*`.
