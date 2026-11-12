@@ -72,7 +72,7 @@ export const GAMES: Game[] = [
       "........",
       "........",
     ],
-    archivo: "demo.html",
+    archivo: "tetris.html",
     vidas: 1,
     recordBase: 184220,
     partidas: "31.8K",
