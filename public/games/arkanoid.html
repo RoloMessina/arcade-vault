@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bloque Buster</title>
+<style>
+  html,body{margin:0;height:100%;background:#05050a;overflow:hidden;font-family:"Courier New",monospace}
+  body{display:grid;place-items:center}
+  canvas{width:100%;height:100%;display:block;touch-action:none}
+</style>
+</head>
+<body>
+<canvas id="game" width="800" height="600"></canvas>
+<script>
+"use strict";
+/* ===== Spritesheet (original, ruta adaptada a /games/assets/bloque-buster/) ===== */
+const EXPLOSION_FRAMES = {
+  red: [ { sx: 256, sy: 176, sw: 32, sh: 16 }, { sx: 288, sy: 176, sw: 32, sh: 16 }, { sx: 320, sy: 176, sw: 32, sh: 16 }, { sx: 352, sy: 176, sw: 32, sh: 16 } ],
+  cyan: [ { sx: 256, sy: 192, sw: 32, sh: 16 }, { sx: 288, sy: 192, sw: 32, sh: 16 }, { sx: 320, sy: 192, sw: 32, sh: 16 }, { sx: 352, sy: 192, sw: 32, sh: 16 } ],
+  green: [ { sx: 256, sy: 208, sw: 32, sh: 16 }, { sx: 288, sy: 208, sw: 32, sh: 16 }, { sx: 320, sy: 208, sw: 32, sh: 16 }, { sx: 352, sy: 208, sw: 32, sh: 16 } ],
+  magenta: [ { sx: 256, sy: 224, sw: 32, sh: 16 }, { sx: 288, sy: 224, sw: 32, sh: 16 }, { sx: 320, sy: 224, sw: 32, sh: 16 }, { sx: 352, sy: 224, sw: 32, sh: 16 } ],
+  yellow: [ { sx: 256, sy: 240, sw: 32, sh: 16 }, { sx: 288, sy: 240, sw: 32, sh: 16 }, { sx: 320, sy: 240, sw: 32, sh: 16 }, { sx: 352, sy: 240, sw: 32, sh: 16 } ],
+  hotpink: [ { sx: 256, sy: 256, sw: 32, sh: 16 }, { sx: 288, sy: 256, sw: 32, sh: 16 }, { sx: 320, sy: 256, sw: 32, sh: 16 }, { sx: 352, sy: 256, sw: 32, sh: 16 } ],
+  gray: [ { sx: 256, sy: 176, sw: 32, sh: 16 }, { sx: 288, sy: 176, sw: 32, sh: 16 }, { sx: 320, sy: 176, sw: 32, sh: 16 }, { sx: 352, sy: 176, sw: 32, sh: 16 } ],
+};
+
+const EXPLOSION_DURATION = 150;
+
+const SPRITES = {
+  paddle: { sx: 32, sy: 112, sw: 162, sh: 14 },
+  ball: { sx: 32, sy: 32, sw: 16, sh: 16 },
+  blocks: {
+    gray: { sx: 32, sy: 288, sw: 32, sh: 16 },
+    red: { sx: 32, sy: 176, sw: 32, sh: 16 },
+    yellow: { sx: 32, sy: 240, sw: 32, sh: 16 },
+    cyan: { sx: 32, sy: 192, sw: 32, sh: 16 },
+    magenta: { sx: 32, sy: 224, sw: 32, sh: 16 },
+    hotpink: { sx: 32, sy: 256, sw: 32, sh: 16 },
+    green: { sx: 32, sy: 208, sw: 32, sh: 16 },
+  }
+};
+
+let ssImg = null;
+let ssLoaded = false;
+const ssCallbacks = [];
+
+function loadSpritesheet( cb ) {
+  if ( ssLoaded ) { cb(); return; }
+  ssCallbacks.push( cb );
+  if ( ssImg ) return;
+
+  const rawImg = new Image();
+  rawImg.onload = () => {
+    const oc = document.createElement( 'canvas' );
+    oc.width = rawImg.width;
+    oc.height = rawImg.height;
+    const octx = oc.getContext( '2d' );
+    octx.drawImage( rawImg, 0, 0 );
+    ssImg = oc;
+    ssLoaded = true;
+    ssCallbacks.forEach( f => f() );
+  };
+  rawImg.onerror = () => console.error( 'Failed to load spritesheet' );
+  rawImg.src = '/games/assets/bloque-buster/spritesheet-breakout.png';
+}
+
+function drawFrame( ctx, frame, x, y, w, h ) {
+  if ( !ssLoaded ) return;
+  ctx.drawImage( ssImg, frame.sx, frame.sy, frame.sw, frame.sh, x, y, w, h );
+}
+
+function drawSprite( ctx, name, x, y, w, h ) {
+  if ( !ssLoaded ) return;
+  let sp;
+  if ( name.startsWith( 'block_' ) ) {
+    sp = SPRITES.blocks[ name.slice( 6 ) ];
+  } else {
+    sp = SPRITES[ name ];
+  }
+  if ( !sp ) return;
+  ctx.drawImage( ssImg, sp.sx, sp.sy, sp.sw, sp.sh, x, y, w, h );
+}
+
+
+/* ===== Niveles (original) ===== */
+const LEVELS = (() => {
+  const rowColors1 = ['red', 'yellow', 'cyan', 'magenta', 'hotpink', 'green'];
+  const rowColors2 = ['gray', 'cyan', 'hotpink', 'yellow', 'magenta', 'green'];
+  const rowColors4 = ['cyan', 'magenta', 'green', 'yellow', 'hotpink', 'red'];
+
+  const l1 = [];
+  for (let row = 0; row < 6; row++)
+    for (let col = 0; col < 10; col++)
+      l1.push({ col, row, color: rowColors1[row] });
+
+  const l2 = [];
+  const pyStart = [4, 3, 2, 1, 0, 0];
+  const pyEnd   = [5, 6, 7, 8, 9, 9];
+  for (let row = 0; row < 6; row++)
+    for (let col = pyStart[row]; col <= pyEnd[row]; col++)
+      l2.push({ col, row, color: rowColors2[row] });
+
+  const l3 = [];
+  for (let row = 0; row < 6; row++)
+    for (let col = 0; col < 10; col++)
+      if ((col + row) % 2 === 0)
+        l3.push({ col, row, color: row < 3 ? 'yellow' : 'magenta' });
+
+  const gaps4 = [
+    [2, 5, 8], [0, 4, 7, 9], [1, 3, 6],
+    [2, 5, 8, 9], [0, 4, 7], [1, 3, 6, 9],
+  ];
+  const l4 = [];
+  for (let row = 0; row < 6; row++)
+    for (let col = 0; col < 10; col++)
+      if (!gaps4[row].includes(col))
+        l4.push({ col, row, color: rowColors4[row] });
+
+  const l5 = [];
+  for (let row = 0; row < 6; row++)
+    for (let col = 0; col < 10; col++) {
+      const isFrame = col === 0 || col === 9 || row === 0 || row === 5;
+      const isCross = col === 4 || row === 2;
+      if (isFrame || isCross)
+        l5.push({ col, row, color: isCross && !isFrame ? 'hotpink' : 'cyan' });
+    }
+
+  return [
+    { speed: 1.00, blocks: l1 },
+    { speed: 1.10, blocks: l2 },
+    { speed: 1.21, blocks: l3 },
+    { speed: 1.33, blocks: l4 },
+    { speed: 1.46, blocks: l5 },
+  ];
+})();
+
+
+/* ===== Juego ===== */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const ASSETS = "/games/assets/bloque-buster/";
+
+const PADDLE_SPEED = 400;
+const BLOCK_COLS = 10, BLOCK_W = 64, BLOCK_H = 24;
+const BLOCKS_ORIGIN_X = (800 - BLOCK_COLS * BLOCK_W) / 2;
+const BLOCKS_ORIGIN_Y = 80;
+const BASE_BALL_VX = 200, BASE_BALL_VY = -300;
+const MAXLIVES = +new URLSearchParams(location.search).get("vidas") || 3;
+
+const paddle = { x: 0, y: 560, w: 81, h: 14 };
+const ball = { x: 0, y: 0, w: 16, h: 16, vx: 0, vy: 0 };
+
+const bounceSound = new Audio(ASSETS + "ball-bounce.mp3");
+const breakSound = new Audio(ASSETS + "break-sound.mp3");
+function play(a) { try { a.cloneNode().play().catch(() => {}); } catch (e) {} }
+
+let blocks = [], explosions = [];
+let lives = MAXLIVES, score = 0, currentLevel = 1;
+let mode = "ready";            // 'ready' (pelota en la paleta) | 'playing' | 'gameover'
+let started = false;           // primera pulsación hecha (oculta el aviso inicial)
+let paused = false, sentOver = false, lastSent = "";
+let keys = { ArrowLeft: false, ArrowRight: false, KeyA: false, KeyD: false };
+
+const send = (m) => parent.postMessage(m, "*");
+function sync() {
+  const k = score + "|" + lives + "|" + currentLevel;
+  if (k === lastSent) return;
+  lastSent = k;
+  send({ type: "arcade:state", score, lives, level: currentLevel });
+}
+
+function stickBall() {
+  ball.x = paddle.x + (paddle.w - ball.w) / 2;
+  ball.y = paddle.y - ball.h;
+  ball.vx = 0; ball.vy = 0;
+}
+function launch() {
+  const speed = LEVELS[currentLevel - 1].speed;
+  ball.vx = BASE_BALL_VX * speed * (Math.random() < 0.5 ? -1 : 1);
+  ball.vy = BASE_BALL_VY * speed;
+  mode = "playing";
+}
+function loadLevel(n) {
+  currentLevel = n;
+  blocks = LEVELS[n - 1].blocks.map((b) => ({
+    x: BLOCKS_ORIGIN_X + b.col * BLOCK_W, y: BLOCKS_ORIGIN_Y + b.row * BLOCK_H,
+    w: BLOCK_W, h: BLOCK_H, color: b.color, alive: true,
+  }));
+  explosions = [];
+  mode = "ready";
+  stickBall();
+}
+function endGame() {
+  mode = "gameover";
+  if (!sentOver) { sentOver = true; send({ type: "arcade:gameover", score }); }
+}
+const collideAABB = (b) =>
+  ball.x < b.x + b.w && ball.x + ball.w > b.x && ball.y < b.y + b.h && ball.y + ball.h > b.y;
+
+/* ---------- entrada ---------- */
+function movePaddleTo(clientX) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = (clientX - rect.left) * (canvas.width / rect.width);
+  paddle.x = Math.max(0, Math.min(canvas.width - paddle.w, mx - paddle.w / 2));
+  if (mode === "ready") stickBall();
+}
+function tryLaunch() {
+  if (paused) return;
+  started = true;
+  if (mode === "ready") launch();
+}
+canvas.addEventListener("mousemove", (e) => { if (!paused && mode !== "gameover") movePaddleTo(e.clientX); });
+canvas.addEventListener("pointerdown", () => tryLaunch());
+const CONTROL = new Set(["ArrowLeft", "ArrowRight", "KeyA", "KeyD", "Space"]);
+addEventListener("keydown", (e) => {
+  if (!CONTROL.has(e.code)) return;
+  e.preventDefault();
+  if (e.code === "Space") { tryLaunch(); return; }
+  keys[e.code] = true;
+});
+addEventListener("keyup", (e) => { if (e.code in keys) keys[e.code] = false; });
+function clearKeys() { keys = { ArrowLeft: false, ArrowRight: false, KeyA: false, KeyD: false }; }
+addEventListener("blur", clearKeys);
+document.addEventListener("visibilitychange", clearKeys);
+addEventListener("message", (e) => {
+  if (e.data?.type === "arcade:pause") { paused = true; clearKeys(); }
+  if (e.data?.type === "arcade:resume") { paused = false; lastTime = performance.now(); }
+});
+
+/* ---------- lógica ---------- */
+function update(dt) {
+  if (mode === "gameover") return;
+  const left = keys.ArrowLeft || keys.KeyA, right = keys.ArrowRight || keys.KeyD;
+  if (left) paddle.x = Math.max(0, paddle.x - PADDLE_SPEED * dt);
+  if (right) paddle.x = Math.min(canvas.width - paddle.w, paddle.x + PADDLE_SPEED * dt);
+  if (mode === "ready") { stickBall(); return; }
+
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+
+  if (ball.x <= 0) { ball.x = 0; ball.vx = Math.abs(ball.vx); play(bounceSound); }
+  if (ball.x + ball.w >= canvas.width) { ball.x = canvas.width - ball.w; ball.vx = -Math.abs(ball.vx); play(bounceSound); }
+  if (ball.y <= 0) { ball.y = 0; ball.vy = Math.abs(ball.vy); play(bounceSound); }
+
+  if (ball.vy > 0 && ball.x + ball.w > paddle.x && ball.x < paddle.x + paddle.w &&
+      ball.y + ball.h >= paddle.y && ball.y + ball.h <= paddle.y + paddle.h + 8) {
+    ball.y = paddle.y - ball.h;
+    ball.vy = -Math.abs(ball.vy);
+    play(bounceSound);
+  }
+
+  for (const block of blocks) {
+    if (!block.alive || !collideAABB(block)) continue;
+    block.alive = false;
+    explosions.push({ x: block.x, y: block.y, w: block.w, h: block.h, color: block.color, elapsed: 0 });
+    score += 10;
+    ball.vy = -ball.vy;
+    play(breakSound);
+    if (blocks.every((b) => !b.alive)) {
+      if (currentLevel < LEVELS.length) loadLevel(currentLevel + 1);
+      else { endGame(); }
+    }
+    sync();
+    break; // un bloque por fotograma
+  }
+
+  for (const ex of explosions) ex.elapsed += dt * 1000;
+  explosions = explosions.filter((ex) => ex.elapsed < EXPLOSION_DURATION);
+
+  if (mode === "playing" && ball.y > canvas.height) {
+    lives--;
+    if (lives <= 0) { lives = 0; sync(); endGame(); }
+    else { mode = "ready"; stickBall(); sync(); }
+  }
+}
+
+/* ---------- dibujo ---------- */
+function text(t, x, y, size, color) {
+  ctx.font = "bold " + size + "px 'Courier New', monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = color; ctx.fillText(t, x, y);
+}
+function overlay(lines, color) {
+  ctx.fillStyle = "rgba(5,5,10,0.65)"; ctx.fillRect(0, 0, 800, 600);
+  ctx.save(); ctx.shadowColor = color; ctx.shadowBlur = 16;
+  lines.forEach((l, i) => text(l[0], 400, 300 + i * 44, l[1], color));
+  ctx.restore();
+}
+function draw() {
+  ctx.fillStyle = "#05050a"; ctx.fillRect(0, 0, 800, 600);
+  for (const b of blocks) if (b.alive) drawSprite(ctx, "block_" + b.color, b.x, b.y, b.w, b.h);
+  for (const ex of explosions) {
+    const i = Math.min(Math.floor(ex.elapsed / EXPLOSION_DURATION * 4), 3);
+    drawFrame(ctx, EXPLOSION_FRAMES[ex.color][i], ex.x, ex.y, ex.w, ex.h);
+  }
+  drawSprite(ctx, "paddle", paddle.x, paddle.y, paddle.w, paddle.h);
+  drawSprite(ctx, "ball", ball.x, ball.y, ball.w, ball.h);
+
+  if (mode === "gameover") {
+    const won = lives > 0;
+    overlay(won ? [["¡COMPLETASTE EL JUEGO!", 34]] : [["GAME OVER", 56]], won ? "#00ff88" : "#ff006e");
+  } else if (paused) {
+    overlay([["PAUSA", 56]], "#f5ff00");
+  } else if (mode === "ready") {
+    ctx.save(); ctx.shadowColor = "#f5ff00"; ctx.shadowBlur = 14;
+    text(started ? "ESPACIO O CLIC PARA LANZAR" : "PULSA ESPACIO PARA EMPEZAR", 400, 480, 22, "#f5ff00");
+    ctx.restore();
+  }
+}
+
+/* ---------- bucle ---------- */
+let lastTime = null;
+function loop(ts) {
+  if (lastTime === null) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+  if (!paused) update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+loadSpritesheet(() => {
+  paddle.x = (canvas.width - paddle.w) / 2;
+  loadLevel(1);
+  sync();
+  requestAnimationFrame(loop);
+});
+</script>
+</body>
+</html>
