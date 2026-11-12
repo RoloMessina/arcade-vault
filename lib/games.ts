@@ -85,7 +85,7 @@ export const GAMES: Game[] = [
     categoria: "Arcade",
     corta: "Crece sin morder tu propia cola.",
     larga:
-      "Una serpiente de luz recorre la grilla buscando núcleos magenta. Cada bocado la alarga y la hace más veloz. Un movimiento en falso y se devora a sí misma.",
+      "Una serpiente de luz recorre la grilla devorando frutas pixel-art. Cada bocado la alarga y la hace más veloz. Un movimiento en falso y se devora a sí misma.",
     accent: G,
     accent2: M,
     sprite: [
