@@ -46,7 +46,7 @@ export const GAMES: Game[] = [
       "..####..",
       "........",
     ],
-    archivo: "demo.html",
+    archivo: "arkanoid.html",
     vidas: 3,
     recordBase: 28450,
     partidas: "12.4K",
