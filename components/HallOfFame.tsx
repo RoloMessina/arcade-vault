@@ -3,24 +3,31 @@
 import { useState } from "react";
 import Leaderboard from "./Leaderboard";
 import Podium from "./Podium";
-import { buildBoard, fmtScore, GAMES } from "@/lib/games";
-import { useGuestBest, useSavedScores, useUser } from "@/lib/store";
+import { fmtScore, GAMES } from "@/lib/games";
+import type { LeaderboardEntry } from "@/lib/leaderboard";
+import { useGuestBest, useUser } from "@/lib/store";
 
-export default function HallOfFame() {
+/** `boards`: top 100 de cada juego (Supabase), una fila por jugador y ordenadas por puntuación. */
+export default function HallOfFame({ boards }: { boards: Record<string, LeaderboardEntry[]> }) {
   const [id, setId] = useState(GAMES[0].id);
   const game = GAMES.find((g) => g.id === id)!;
   const user = useUser();
-  const saved = useSavedScores();
   const guest = useGuestBest();
+  const board = boards[id] ?? [];
 
+  // Con cuenta: su fila del ranking (solo si está en el top 100; fuera no hay marca ni puesto).
+  // Invitado: su marca local, sin puesto.
   let mine: number | null = null;
+  let rank: number | null = null;
   if (user && !user.guest) {
-    const own = saved.filter((s) => s.gameId === id && s.name === user.name).map((s) => s.score);
-    if (own.length) mine = Math.max(...own);
+    const i = board.findIndex((s) => s.name === user.name);
+    if (i >= 0) {
+      mine = board[i].score;
+      rank = i + 1;
+    }
   } else if (user) {
     mine = guest[id] ?? null;
   }
-  const rank = mine === null || !user || user.guest ? null : buildBoard(game, saved, 1000).findIndex((s) => s.name === user.name && s.score === mine) + 1;
 
   return (
     <>
@@ -45,10 +52,10 @@ export default function HallOfFame() {
         </div>
       )}
 
-      <Podium game={game} />
+      <Podium game={game} entries={board} />
 
       <div className="panel p-2 sm:p-4" style={{ "--accent": game.accent } as React.CSSProperties}>
-        <Leaderboard game={game} />
+        <Leaderboard game={game} entries={board.slice(0, 10)} />
       </div>
     </>
   );

@@ -1,12 +1,12 @@
 "use client";
 
-import { buildBoard, fmtDate, fmtScore, type Game } from "@/lib/games";
-import { useSavedScores, useUser } from "@/lib/store";
+import { fmtDate, fmtScore, type Game } from "@/lib/games";
+import type { LeaderboardEntry } from "@/lib/leaderboard";
+import { useUser } from "@/lib/store";
 
-export default function Leaderboard({ game }: { game: Game }) {
-  const saved = useSavedScores();
+export default function Leaderboard({ game, entries }: { game: Game; entries: LeaderboardEntry[] }) {
   const user = useUser();
-  const board = buildBoard(game, saved);
+  const board = entries;
   const me = user && !user.guest ? user.name : null;
 
   return (

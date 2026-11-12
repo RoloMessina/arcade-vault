@@ -4,6 +4,7 @@ import { Cover } from "@/components/Sprite";
 import GameStats from "@/components/GameStats";
 import Leaderboard from "@/components/Leaderboard";
 import { GAMES, getGame } from "@/lib/games";
+import { getLeaderboard } from "@/lib/leaderboard";
 
 export function generateStaticParams() {
   return GAMES.map((g) => ({ id: g.id }));
@@ -13,6 +14,7 @@ export default async function JuegoPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const game = getGame(id);
   if (!game) notFound();
+  const entries = await getLeaderboard(game.id);
 
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-10">
@@ -37,7 +39,7 @@ export default async function JuegoPage({ params }: { params: Promise<{ id: stri
             {game.titulo}
           </h1>
           <p className="max-w-prose text-lg leading-relaxed text-[var(--fg)]/90">{game.larga}</p>
-          <GameStats game={game} />
+          <GameStats game={game} mejor={entries[0]?.score ?? 0} />
           <div>
             <Link
               href={`/juego/${game.id}/jugar`}
@@ -57,7 +59,7 @@ export default async function JuegoPage({ params }: { params: Promise<{ id: stri
           <h2 id="top10" className="neon-yellow mb-3 font-pixel text-xs leading-relaxed sm:text-sm">
             MEJORES PUNTUACIONES
           </h2>
-          <Leaderboard game={game} />
+          <Leaderboard game={game} entries={entries} />
         </aside>
       </div>
     </section>

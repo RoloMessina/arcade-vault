@@ -1,7 +1,5 @@
-"use client";
-
-import { buildBoard, fmtDate, fmtScore, type Game } from "@/lib/games";
-import { useSavedScores } from "@/lib/store";
+import { fmtDate, fmtScore, type Game } from "@/lib/games";
+import type { LeaderboardEntry } from "@/lib/leaderboard";
 
 const SLOTS = [
   { clase: "gold", puesto: "01" },
@@ -9,10 +7,9 @@ const SLOTS = [
   { clase: "bronze", puesto: "03" },
 ] as const;
 
-/** Top 3 del juego. Usa el mismo ranking que la tabla, así que ambos siempre coinciden. */
-export default function Podium({ game }: { game: Game }) {
-  const saved = useSavedScores();
-  const top = buildBoard(game, saved, 3);
+/** Top 3 del juego. Recibe el mismo ranking que la tabla, así que ambos siempre coinciden. */
+export default function Podium({ game, entries }: { game: Game; entries: LeaderboardEntry[] }) {
+  const top = entries.slice(0, 3);
 
   return (
     // key: reinicia la animación de entrada al cambiar de juego

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { fmtScore, type Game } from "@/lib/games";
-import { recordGuestBest, saveScore, useUser } from "@/lib/store";
+import { guardarPuntuacion } from "@/app/juego/[id]/jugar/actions";
+import { recordGuestBest, useUser } from "@/lib/store";
 
 /**
  * Protocolo con el juego (iframe sandbox):
@@ -42,6 +43,8 @@ export default function Player({ game }: { game: Game }) {
   const [hud, setHud] = useState({ score: 0, lives: game.vidas, level: 1 });
   const [final, setFinal] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const name = user?.name ?? "INVITADO";
   const canSave = !!user && !user.guest;
@@ -76,14 +79,24 @@ export default function Player({ game }: { game: Game }) {
     setPaused(false);
     setFinal(null);
     setSaved(false);
+    setSaving(false);
+    setSaveError(null);
     setHud({ score: 0, lives: game.vidas, level: 1 });
   }, [game.vidas]);
 
-  const guardar = () => {
-    if (final === null) return;
-    // BACKEND: POST /api/scores { gameId, score } o supabase.from("scores").insert(...)
-    saveScore({ gameId: game.id, name, score: final, date: new Date().toISOString().slice(0, 10) });
-    setSaved(true);
+  const guardar = async () => {
+    if (final === null || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await guardarPuntuacion(game.id, final);
+      if (res.ok) setSaved(true);
+      else setSaveError(res.error);
+    } catch {
+      setSaveError("No se pudo guardar la puntuación. Inténtalo de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -173,9 +186,16 @@ export default function Player({ game }: { game: Game }) {
                   <Typewriter text="PUNTUACIÓN GUARDADA" />
                 </p>
               ) : canSave ? (
-                <button className="btn btn-yellow w-full" onClick={guardar}>
-                  Guardar puntuación
-                </button>
+                <>
+                  <button className="btn btn-yellow w-full" onClick={guardar} disabled={saving}>
+                    {saving ? "Guardando…" : "Guardar puntuación"}
+                  </button>
+                  {saveError && (
+                    <p className="mt-3 text-sm text-[var(--magenta)]" role="alert">
+                      {saveError}
+                    </p>
+                  )}
+                </>
               ) : (
                 <p className="text-sm text-[var(--muted)]">
                   {user ? "Juegas como invitado: tu marca queda solo en este dispositivo." : "No has iniciado sesión: tu marca queda solo en este dispositivo."}{" "}

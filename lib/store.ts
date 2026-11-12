@@ -1,15 +1,9 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import type { ScoreEntry } from "./games";
 import { createClient } from "./supabase/client";
 
-/**
- * Persistencia local mínima.
- * BACKEND: para usuarios autenticados, reemplazar las funciones de escritura por
- * llamadas REST (POST /api/scores) o Supabase (supabase.from("scores").insert(...))
- * y las de lectura por GET /api/scores?game=:id.
- */
+/** Persistencia local mínima: sesión de invitado y su mejor marca. Los rankings viven en Supabase (lib/leaderboard.ts). */
 
 const listeners = new Set<() => void>();
 
@@ -134,26 +128,6 @@ export async function logout() {
   authSeq++;
   account = null;
   write(USER_KEY, null);
-}
-
-/* ---------- Puntuaciones globales (usuarios con cuenta) ---------- */
-
-const SCORES_KEY = "av:scores";
-const NO_SCORES: ScoreEntry[] = [];
-
-export function useSavedScores() {
-  return useStored<ScoreEntry[]>(SCORES_KEY, NO_SCORES);
-}
-
-export function saveScore(entry: ScoreEntry) {
-  const current = (() => {
-    try {
-      return JSON.parse(read(SCORES_KEY) ?? "[]") as ScoreEntry[];
-    } catch {
-      return [];
-    }
-  })();
-  write(SCORES_KEY, JSON.stringify([...current, entry]));
 }
 
 /* ---------- Mejor marca local (invitados) ---------- */

@@ -12,18 +12,12 @@ export type Game = {
   /** Archivo HTML del juego dentro de /public/games */
   archivo: string;
   vidas: number;
+  /** Refleja `games.record_base` en Supabase (base del tope `score_max`); la UI ya no lo usa. */
   recordBase: number;
   /** Partidas jugadas, en texto abreviado (p. ej. "12.4K") */
   partidas: string;
   /** Estrellas llenas sobre 5 */
   dificultad: 1 | 2 | 3 | 4 | 5;
-};
-
-export type ScoreEntry = {
-  gameId: string;
-  name: string;
-  score: number;
-  date: string; // ISO yyyy-mm-dd
 };
 
 const C = "#00f5ff";
@@ -246,37 +240,6 @@ export const CATEGORIAS = ["Todos", ...Array.from(new Set(GAMES.map((g) => g.cat
 
 export function getGame(id: string) {
   return GAMES.find((g) => g.id === id);
-}
-
-const NOMBRES = [
-  "NEO_RIDER",
-  "LUNA88",
-  "PIXELFOX",
-  "KAIJU",
-  "DR_BYTE",
-  "TURBO_T",
-  "ROSA_V",
-  "MAXPOWER",
-  "CHIPA",
-  "ZXCVBN",
-];
-
-/** Puntuaciones de ejemplo. Un backend real (REST / Supabase) las reemplazaría. */
-export function seedScores(game: Game): ScoreEntry[] {
-  // Juegos con marcas bajas (p. ej. Duelo Pixel) redondean de 1 en 1 para no empatar ni caer a 0.
-  const paso = game.recordBase < 100 ? 1 : 10;
-  return NOMBRES.map((name, i) => ({
-    gameId: game.id,
-    name,
-    score: Math.round((game.recordBase * (1 - i * 0.085 - ((i * 7 + game.id.length) % 5) * 0.012)) / paso) * paso,
-    date: `2026-10-${String(28 - i * 2).padStart(2, "0")}`,
-  }));
-}
-
-export function buildBoard(game: Game, saved: ScoreEntry[], limit = 10): ScoreEntry[] {
-  return [...seedScores(game), ...saved.filter((s) => s.gameId === game.id)]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
 }
 
 export function fmtScore(n: number) {
