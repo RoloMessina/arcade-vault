@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { buildBoard, CATEGORIAS, GAMES, type Game } from "@/lib/games";
-import { useGuestBest, useSavedScores } from "@/lib/store";
+import { CATEGORIAS, GAMES, type Game } from "@/lib/games";
+import { useGuestBest } from "@/lib/store";
 
 const COLOR_BTN: Record<string, string> = {
   "#ff006e": "var(--magenta)",
@@ -59,10 +59,10 @@ function GameCard({ game, record }: { game: Game; record: number }) {
   );
 }
 
-export default function GameLibrary() {
+/** `records`: mejor puntuación global por juego (Supabase). La marca local del invitado puede superarla. */
+export default function GameLibrary({ records }: { records: Record<string, number> }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("Todos");
-  const saved = useSavedScores();
   const guest = useGuestBest();
 
   const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -103,7 +103,7 @@ export default function GameLibrary() {
 
       <div className="av-grid">
         {list.map((g) => {
-          const record = Math.max(g.recordBase, buildBoard(g, saved, 1)[0].score, guest[g.id] ?? 0);
+          const record = Math.max(records[g.id] ?? 0, guest[g.id] ?? 0);
           return <GameCard key={g.id} game={g} record={record} />;
         })}
         {list.length === 0 && (

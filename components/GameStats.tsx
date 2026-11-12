@@ -1,12 +1,7 @@
-"use client";
-
-import { buildBoard, fmtScore, type Game } from "@/lib/games";
-import { useSavedScores } from "@/lib/store";
+import { fmtScore, type Game } from "@/lib/games";
 
 /** Franja de estadísticas del detalle. "Mejor global" es el primer puesto del ranking visible. */
-export default function GameStats({ game }: { game: Game }) {
-  const saved = useSavedScores();
-  const mejor = buildBoard(game, saved, 1)[0].score;
+export default function GameStats({ game, mejor }: { game: Game; mejor: number }) {
   const estrellas = "★ ".repeat(game.dificultad) + "☆ ".repeat(5 - game.dificultad);
 
   return (

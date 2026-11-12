@@ -1,6 +1,8 @@
 import GameLibrary from "@/components/GameLibrary";
+import { getRecords } from "@/lib/leaderboard";
 
-export default function Biblioteca() {
+export default async function Biblioteca() {
+  const records = await getRecords();
   return (
     <>
       <header className="av-hero">
@@ -9,7 +11,7 @@ export default function Biblioteca() {
           INSERTA UNA MONEDA PARA JUGAR <span className="blink">_</span>
         </div>
       </header>
-      <GameLibrary />
+      <GameLibrary records={records} />
     </>
   );
 }
