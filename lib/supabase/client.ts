@@ -1,9 +1,7 @@
-import { createBrowserClient } from "@supabase/ssr";
+import { createBrowserClient } from '@supabase/ssr';
 
-/** Cliente de Supabase para componentes de cliente (usa cookies del navegador). */
-export function createClient() {
-  return createBrowserClient(
+export const createClient = () =>
+  createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
   );
-}
