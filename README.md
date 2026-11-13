@@ -14,12 +14,12 @@ https://github.com/Klerith/fernando-skills
 ```bash
 npx skills@latest add Klerith/fernando-skills
 ```
-## Comandos
+
+## Commands
 
 ```bash
-npm run dev      # servidor de desarrollo
-npm run build    # build de producción (también valida tipos)
-npm run lint     # eslint
-npx tsc --noEmit # chequeo de tipos
+npm run dev      # start dev server (port 3000)
+npm run build    # production build
+npm run start    # serve production build
+npm run lint     # ESLint (Next.js config)
 ```
-

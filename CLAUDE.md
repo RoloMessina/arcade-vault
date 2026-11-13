@@ -2,29 +2,97 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-No hay tests configurados.
+@AGENTS.md
 
-## Next.js no estándar
+## Project
 
-AGENTS.md avisa que esta versión de Next (16.x) tiene cambios incompatibles con lo que conoces. Antes de escribir código, lee la guía relevante en `node_modules/next/dist/docs/`. Ej.: `params` de las páginas es una `Promise` (`await params`), y `LayoutProps<"/">` es un tipo global.
+Arcade Vault — an online gaming platform where users play and compete for points. Uses **Spec Driven Design** via the `/spec` and `/spec-impl` skills from `npx skills@latest add Klerith/fernando-skills` (registrados en `skills-lock.json`).
+
+## Stack
+
+- **Next.js 16.2.6** with App Router (`app/` directory) — read `node_modules/next/dist/docs/` before writing Next.js code; APIs differ from training data
+- **React 19.2.4**
+- **Tailwind CSS v4** (PostCSS plugin via `@tailwindcss/postcss`)
+- **TypeScript**
+- **Supabase** (`@supabase/ssr`, `@supabase/supabase-js`) — tablas `games` y `scores`
+- **Resend** — envío de emails del formulario de contacto
+- **Prettier + ESLint** (flat config, `eslint.config.mjs`)
+
+No test runner is configured yet.
+
+## Commands
+
+```powershell
+npm run dev           # servidor de desarrollo
+npm run build         # build de producción
+npm run lint          # eslint
+npm run format        # prettier --write
+npm run format:check  # prettier --check
+```
+
+## Environment variables
+
+Copiar `.env.template` a `.env.local` y completar:
+
+- `RESEND_API_KEY` — API key de Resend (`/api/contact`)
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — clientes Supabase
+- `SUPABASE_DB_PASSWORD`
+
+Nunca commitear `.env.local`.
 
 ## Skills
 
-Usa fronted-design cuando vas a diseñar y construir interfaz de usuario.
+- Usa siempre `/frontend-design` para diseñar la interfaz de usuario.
+- `/spec` — escribe un spec en `specs/NN-<slug>.md` sección por sección (template en `.claude/skills/spec/template.md`).
+- `/spec-impl NN` — implementa un spec paso a paso.
+- `/add-game <references/started-games/NN-name | descripción>` — skill propio (`.claude/skills/add-game/`, `disable-model-invocation`). Genera **solo el spec** de un juego canvas nuevo (componente, play-page, INSERT en `games`, leaderboard). Luego se implementa con `/spec-impl`.
 
-## Idioma
+Los skills `spec` y `spec-impl` viven en `.agents/skills/` y se exponen en `.claude/skills/` (symlinks).
 
-Toda la UI y los textos están en español (ver `prompt-design.md`, la especificación visual y funcional). Estética: fondo `#0a0a0f`, neón cian/magenta/amarillo, fuentes Press Start 2P (`font-pixel`) y Courier Prime. Los estilos viven en clases personalizadas de `app/globals.css` (`.btn`, `.panel`, `.field`, `.chip`, `.crt-*`…), con Tailwind v4 solo como apoyo.
+## Hooks y MCP
 
-## Arquitectura
+- **Hook PostToolUse** (`.claude/settings.json`, `Write|Edit|MultiEdit`): ejecuta `.claude/hooks/format-and-lint.sh` → prettier en ts/tsx/js/jsx/json/css/md y `eslint --fix` en ts/tsx/js/jsx. No hace falta formatear a mano.
+- **MCP Supabase** (`.mcp.json`, HTTP, habilitado en `settings.local.json`): usar para inspeccionar/modificar la base de datos del proyecto.
+- Directorios `.playwright-mcp/` y `.playwright-screenshots/` reservados para pruebas visuales con Playwright.
 
-- **Rutas** (`app/`): `/` biblioteca, `/juego/[id]` detalle, `/juego/[id]/jugar` reproductor, `/acceso`, `/salon-de-la-fama`, `/acerca-de` (misión + formulario de contacto). `app/template.tsx` aplica la transición de página.
-- **Datos** (`lib/games.ts`): catálogo `GAMES` (único origen de verdad de la UI: textos, sprites pixel-art y colores), más `fmtScore`/`fmtDate`. La tabla `public.games` de Supabase refleja solo lo que la BD necesita (id, título, categoría, archivo, vidas, `record_base`, `score_max`); **al añadir o cambiar un juego hay que actualizar `GAMES` y `games` a la vez** (una migración), o `guardarPuntuacion` lo rechaza.
-- **Rankings** (SPEC 06, `lib/leaderboard.ts`): `getLeaderboard(gameId, limit)`, `getAllLeaderboards()` y `getRecords()` leen la vista `public.leaderboard` (mejor puntuación por jugador y juego, `security_invoker`) con un cliente público sin cookies (`lib/supabase/public.ts`). El proyecto usa `cacheComponents`, así que `getLeaderboard` lleva `"use cache"` + `cacheTag(LEADERBOARD_TAG)` + `cacheLife("hours")`; `Leaderboard`, `Podium`, `GameStats`, `HallOfFame` y `GameLibrary` reciben los datos por props desde las páginas. Las tablas `games` y `scores` (RLS: lectura pública; solo `insert` propio y no semilla) llevan 10 puntuaciones semilla por juego (`es_semilla`, `user_id` nulo). `scores.nombre` lo fija el trigger `scores_set_nombre` desde `profiles.username`. Guardado: Server Action `guardarPuntuacion` (`app/juego/[id]/jugar/actions.ts`, valida sesión, juego y 0..`score_max`) llamada desde `Player.tsx`; invalida la caché con `updateTag(LEADERBOARD_TAG)`. No hay anti-trampas más allá del tope.
-- **Estado** (`lib/store.ts`): vía `useSyncExternalStore` (snapshot de servidor `null` para evitar errores de hidratación). La **sesión** es real (Supabase Auth, ver abajo); solo la sesión de invitado (`av:user`) y su mejor marca (`av:guest-best`) viven en `localStorage`. Las puntuaciones de cuentas ya no están en `localStorage`.
-- **Invitados vs. cuenta**: `useUser()` devuelve `{ name, guest }`. Cuenta = sesión de Supabase con `name = profiles.username`; invitado = `av:user` en `localStorage` (`loginGuest()`), sin usuario en Supabase. Los invitados solo guardan su marca local (`recordGuestBest`) y no entran en el ranking; las puntuaciones con cuenta se guardan en `scores` con `guardarPuntuacion`. `logout()` es asíncrono y cierra ambas sesiones. Las entradas `av:user` antiguas con `guest: false` se descartan.
-- **Supabase Auth** (SPEC 04): `@supabase/ssr` con cookies. Clientes en `lib/supabase/` (`client.ts` navegador, `server.ts` servidor con `await cookies()`, `proxy.ts` con `updateSession`). `proxy.ts` (raíz; en Next 16 sustituye a `middleware`) solo refresca la sesión, no protege rutas, y excluye `_next/static`, `_next/image`, imágenes y `games/`. `app/auth/callback/route.ts` cambia el `code` (confirmación de correo y OAuth) por sesión y redirige a una ruta fija. `/acceso` (`components/acceso/AccesoForm.tsx`) registra con correo + `username` (comprueba `username_disponible` antes), inicia sesión por correo, y usa Google/GitHub; con confirmación de correo activada. Base de datos: `public.profiles` (`id` → `auth.users`, `username` único `^[A-Z0-9_]{3,20}$`, RLS con lectura pública y sin escritura directa); un trigger `on_auth_user_created` crea el perfil (para OAuth genera el `username` y añade sufijo numérico si choca). El SQL está versionado en `supabase/migrations/` y se aplica con el MCP de Supabase (`apply_migration`). Variables públicas `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (ver `.env.example`); nunca uses `service_role` en la app.
-- **Configuración manual de Supabase** (panel, no está en el código): *Authentication → URL Configuration*: Site URL `http://localhost:3000` y Redirect URLs `http://localhost:3000/**` (añadir el dominio de producción al desplegar). *Authentication → Sign In / Providers*: Email con «Confirm email» activado; Google y GitHub con su Client ID/Secret, usando como callback de cada proveedor la URL que muestra el panel (`https://<ref>.supabase.co/auth/v1/callback`).
-- **Navbar** se oculta en rutas que terminan en `/jugar`.
-- **Contacto** (`/acerca-de`): el formulario (`components/about/ContactForm.tsx`, cliente, `useActionState`) llama a la Server Action `enviarContacto` de `app/acerca-de/actions.ts`, que valida en servidor y envía un correo de texto plano con el SDK `resend` (remitente `onboarding@resend.dev`, `replyTo` = correo del usuario). La terminal de éxito solo aparece si Resend confirma; cualquier fallo devuelve un error genérico y se registra con `console.error`. Variables de entorno solo de servidor (ver `.env.example`; copiar a `.env.local`): `RESEND_API_KEY` y `CONTACT_TO_EMAIL` (con el remitente de prueba debe ser el correo de la cuenta de Resend). Sin anti-spam más allá de la validación.
-- **Juegos HTML** (`public/games/`): se cargan en un iframe con `sandbox="allow-scripts"` desde `components/Player.tsx`. Protocolo por `postMessage`: juego→portal `{type:"arcade:state", score, lives, level}` y `{type:"arcade:gameover", score}`; portal→juego `arcade:pause` / `arcade:resume`. Solo `snake.html` (id `serpentina`; sus frutas salen de `references/source-asses/snake-assets/fruits.png`, copiado a `public/games/assets/serpentina/`), `asteroids.html` (id `rocas`, portado de `references/started-games/02-asteroids`, SPEC 05), `tetris.html` (id `caida`, portado de `references/started-games/03-tetris`) y `arkanoid.html` (id `bloque-buster`, portado de `references/started-games/04-arkanoid`; sus sprites y sonidos viven en `public/games/assets/bloque-buster/`) son juegos reales; el resto usa `demo.html` (minijuego de demostración). Los juegos leen `?vidas=` de la URL; el reinicio tras el game over lo hace el portal recargando el iframe, no el juego. El portal valida `e.source` contra el iframe.
+## Architecture
+
+Uses Next.js **App Router** exclusively — no `pages/` directory. Server Components are the default; mark client components with `"use client"` only when needed. Alias de imports: `@/` (ej. `@/app/context/UserContext`).
+
+### Rutas (`app/`)
+
+- `/` (`page.tsx`) — landing; `RevealObserver.tsx` anima secciones al hacer scroll
+- `/games` (`page.tsx` + `GamesGrid.tsx`) — catálogo leído de la tabla `games`
+- `/games/[id]` — detalle del juego (dinámico desde Supabase)
+- `/games/[id]/play` — reproductor genérico; además existen play-pages específicas: `/games/{asteroids,tetris,arkanoid,snake}/play`
+- `/hall-of-fame` (`page.tsx` + `HallOfFameClient.tsx`) — leaderboards por juego (tabs automáticas por cada fila de `games`)
+- `/about` — página About con formulario de contacto
+- `/auth` — login/registro (por ahora solo nombre de jugador local)
+- `/api/contact` (`route.ts`) — POST que envía el mensaje vía Resend
+
+### Juegos (`components/games/`)
+
+`AsteroidsGame`, `TetrisGame`, `ArkanoidGame`, `SnakeGame` — componentes canvas con HUD en React (`score`, `lives`, `level`, `paused`, `over`), prop `paused`, limpieza de listeners en el `useEffect`, y modal de guardado de score al terminar. `AsteroidsGame` es la referencia de patrón. Assets en `public/` (sprites, mp3). Fuentes originales en `references/started-games/` y maquetas en `references/templates/`.
+
+### Datos y estado
+
+- `lib/supabase/{client,server,types}.ts` — clientes browser/server (`createClient` async con `cookies()`), y tipos `GameRow` / `ScoreRow` (`scores`: `game_id`, `player_name`, `score`, `user_id`).
+- `app/context/UserContext.tsx` — `UserProvider`/`useUser` (usuario en `localStorage` key `av_user`; `login`, `signOut`).
+- `app/data/` — datos locales estáticos (legado de las primeras specs; la fuente real es Supabase).
+- `components/Nav.tsx` — navegación global. `demos/Demo.tsx` — demo auxiliar.
+
+## Specs (`specs/`)
+
+| #   | Spec                                  | Estado      |
+| --- | ------------------------------------- | ----------- |
+| 01  | MVP visual screens                    | —           |
+| 02  | Home landing page                     | —           |
+| 03  | About page + contacto con Resend      | —           |
+| 04  | Integración de Supabase               | Implementado |
+| 05  | Juego Asteroids                       | Implementado |
+| 06  | Tabla `games` + leaderboard Supabase  | Implementado |
+| 07  | Juego Tetris                          | Implementado |
+| 08  | Juego Arkanoid                        | Aprobado (verificar implementación) |
+| 09  | Juego Snake                           | Implementado |
+
+Para añadir un juego: `/add-game` → genera `specs/NN-<id>-game.md` (estado `Borrador`) → revisar y pasar a `Aprobado` → `/spec-impl NN`. Las tablas `games`/`scores` ya existen; cada juego nuevo solo requiere un INSERT en `games`.

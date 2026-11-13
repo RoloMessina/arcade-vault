@@ -1,42 +1,30 @@
 import type { Metadata } from "next";
-import { Press_Start_2P, Courier_Prime, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-
-const press = Press_Start_2P({
-  variable: "--font-press",
-  weight: "400",
-  subsets: ["latin", "latin-ext"],
-});
-
-const courier = Courier_Prime({
-  variable: "--font-courier",
-  weight: ["400", "700"],
-  subsets: ["latin", "latin-ext"],
-});
-
-const jetbrains = JetBrains_Mono({
-  variable: "--font-jetbrains",
-  weight: ["400", "500", "700"],
-  subsets: ["latin", "latin-ext"],
-});
+import { UserProvider } from "./context/UserContext";
+import Nav from "@/components/Nav";
 
 export const metadata: Metadata = {
-  title: "ARCADE VAULT",
-  description: "Portal de juegos arcade retro. Inserta una moneda para jugar.",
+  title: "Arcade Vault",
+  description: "Online gaming platform — play and compete for points",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="es" className={`${press.variable} ${courier.variable} ${jetbrains.variable} h-full antialiased`}>
+    <html lang="en" className="h-full">
       <body className="min-h-full flex flex-col">
-        <div className="vault-bg" aria-hidden="true" />
-        <div className="vault-noise" aria-hidden="true" />
-        <Navbar />
-        <main className="flex-1 flex flex-col">{children}</main>
-        <footer className="av-footer">
-          © 2026 ARCADE VAULT · HECHO CON PÍXELES Y NEÓN · v2.6.0
-        </footer>
+        <UserProvider>
+          <div className="av-bg" />
+          <div className="av-noise" />
+          <Nav />
+          <main className="av-main" style={{ position: 'relative', zIndex: 2 }}>{children}</main>
+          <footer style={{ borderTop: '1px solid var(--line)', padding: '20px 32px', textAlign: 'center', color: 'var(--ink-faint)', fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.16em' }}>
+            © 2026 ARCADE VAULT · HECHO CON PIXELES Y NEÓN · v2.6.0
+          </footer>
+        </UserProvider>
       </body>
     </html>
   );
