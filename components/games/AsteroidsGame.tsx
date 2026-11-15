@@ -2,7 +2,72 @@
 
 import { useEffect, useRef } from 'react';
 
+type Skin = {
+  bg: string;
+  text: string;
+  ship: string;
+  shipFill: string | null;
+  thrust: string;
+  bullet: string;
+  asteroid: string;
+  asteroidFill: string | null;
+  particle: string;
+  lineWidth: number;
+  glow: number;
+  pixel: boolean;
+  font: string;
+};
+
+const SKINS: Record<string, Skin> = {
+  classic: {
+    bg: '#0d1020',
+    text: '#e6e9ff',
+    ship: '#e6e9ff',
+    shipFill: null,
+    thrust: '#ff9a3c',
+    bullet: '#ffd86b',
+    asteroid: '#aab4d8',
+    asteroidFill: null,
+    particle: '#e6e9ff',
+    lineWidth: 1.5,
+    glow: 0,
+    pixel: false,
+    font: '15px monospace',
+  },
+  neon: {
+    bg: '#05050a',
+    text: '#7df9ff',
+    ship: '#00f0ff',
+    shipFill: null,
+    thrust: '#ff3df2',
+    bullet: '#faff3d',
+    asteroid: '#ff2bd6',
+    asteroidFill: null,
+    particle: '#39ff88',
+    lineWidth: 1.2,
+    glow: 12,
+    pixel: false,
+    font: '15px monospace',
+  },
+  retro: {
+    bg: '#1b1245',
+    text: '#ffe14d',
+    ship: '#ffe14d',
+    shipFill: '#ff6a3d',
+    thrust: '#ffe14d',
+    bullet: '#ffffb0',
+    asteroid: '#c9a0ff',
+    asteroidFill: '#5b3a9e',
+    particle: '#ff6a3d',
+    lineWidth: 2,
+    glow: 0,
+    pixel: true,
+    font: 'bold 16px monospace',
+  },
+};
+
 interface AsteroidsGameProps {
+  skinKey?: string;
   paused: boolean;
   onScoreChange: (score: number) => void;
   onLivesChange: (lives: number) => void;
@@ -11,6 +76,7 @@ interface AsteroidsGameProps {
 }
 
 export default function AsteroidsGame({
+  skinKey = 'classic',
   paused,
   onScoreChange,
   onLivesChange,
@@ -21,11 +87,15 @@ export default function AsteroidsGame({
 
   // Refs so the game loop always reads the latest prop values without re-running the effect
   const pausedRef = useRef(paused);
+  const skinRef = useRef<Skin>(SKINS[skinKey] ?? SKINS.classic);
   const cbScore = useRef(onScoreChange);
   const cbLives = useRef(onLivesChange);
   const cbLevel = useRef(onLevelChange);
   const cbOver = useRef(onGameOver);
 
+  useEffect(() => {
+    skinRef.current = SKINS[skinKey] ?? SKINS.classic;
+  }, [skinKey]);
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
@@ -84,6 +154,18 @@ export default function AsteroidsGame({
     const randInt = (min: number, max: number) =>
       Math.floor(rand(min, max + 1));
 
+    // ── Skin helpers ─────────────────────────────────────────────────────────
+    function glowOn(color: string) {
+      const g = skinRef.current.glow;
+      if (g > 0) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = g;
+      }
+    }
+    function glowOff() {
+      ctx.shadowBlur = 0;
+    }
+
     // ── Bullet ───────────────────────────────────────────────────────────────
     class Bullet {
       x: number;
@@ -110,10 +192,17 @@ export default function AsteroidsGame({
         if (this.ttl <= 0) this.dead = true;
       }
       draw() {
-        ctx.fillStyle = '#fff';
+        const sk = skinRef.current;
+        ctx.fillStyle = sk.bullet;
+        if (sk.pixel) {
+          ctx.fillRect(Math.round(this.x) - 2, Math.round(this.y) - 2, 4, 4);
+          return;
+        }
+        glowOn(sk.bullet);
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
+        glowOff();
       }
     }
 
@@ -169,15 +258,22 @@ export default function AsteroidsGame({
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rot);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1.5;
-        ctx.lineJoin = 'round';
+        const sk = skinRef.current;
+        ctx.strokeStyle = sk.asteroid;
+        ctx.lineWidth = sk.lineWidth;
+        ctx.lineJoin = sk.pixel ? 'miter' : 'round';
+        glowOn(sk.asteroid);
         ctx.beginPath();
         ctx.moveTo(this.verts[0][0], this.verts[0][1]);
         for (let i = 1; i < this.verts.length; i++)
           ctx.lineTo(this.verts[i][0], this.verts[i][1]);
         ctx.closePath();
+        if (sk.asteroidFill) {
+          ctx.fillStyle = sk.asteroidFill;
+          ctx.fill();
+        }
         ctx.stroke();
+        glowOff();
         ctx.restore();
       }
     }
@@ -243,23 +339,32 @@ export default function AsteroidsGame({
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.angle);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1.5;
-        ctx.lineJoin = 'round';
+        const sk = skinRef.current;
+        ctx.strokeStyle = sk.ship;
+        ctx.lineWidth = sk.lineWidth;
+        ctx.lineJoin = sk.pixel ? 'miter' : 'round';
+        glowOn(sk.ship);
         ctx.beginPath();
         ctx.moveTo(20, 0);
         ctx.lineTo(-12, -9);
         ctx.lineTo(-7, 0);
         ctx.lineTo(-12, 9);
         ctx.closePath();
+        if (sk.shipFill) {
+          ctx.fillStyle = sk.shipFill;
+          ctx.fill();
+        }
         ctx.stroke();
+        glowOff();
         if (this.thrusting && Math.random() > 0.35) {
           ctx.beginPath();
           ctx.moveTo(-8, -4);
           ctx.lineTo(-8 - rand(6, 14), 0);
           ctx.lineTo(-8, 4);
-          ctx.strokeStyle = 'rgba(255, 130, 0, 0.85)';
+          ctx.strokeStyle = sk.thrust;
+          glowOn(sk.thrust);
           ctx.stroke();
+          glowOff();
         }
         ctx.restore();
       }
@@ -293,12 +398,22 @@ export default function AsteroidsGame({
       }
       draw() {
         const alpha = this.ttl / this.life;
-        ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(this.x, this.y);
-        ctx.lineTo(this.x - this.vx * 0.05, this.y - this.vy * 0.05);
-        ctx.stroke();
+        const sk = skinRef.current;
+        ctx.globalAlpha = alpha;
+        if (sk.pixel) {
+          ctx.fillStyle = sk.particle;
+          ctx.fillRect(Math.round(this.x), Math.round(this.y), 3, 3);
+        } else {
+          ctx.strokeStyle = sk.particle;
+          ctx.lineWidth = 1;
+          glowOn(sk.particle);
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(this.x - this.vx * 0.05, this.y - this.vy * 0.05);
+          ctx.stroke();
+          glowOff();
+        }
+        ctx.globalAlpha = 1;
       }
     }
 
@@ -431,31 +546,41 @@ export default function AsteroidsGame({
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(-Math.PI / 2);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1.2;
-      ctx.lineJoin = 'round';
+      const sk = skinRef.current;
+      ctx.strokeStyle = sk.ship;
+      ctx.lineWidth = Math.min(sk.lineWidth, 1.5);
+      ctx.lineJoin = sk.pixel ? 'miter' : 'round';
+      glowOn(sk.ship);
       ctx.beginPath();
       ctx.moveTo(9, 0);
       ctx.lineTo(-6, -5);
       ctx.lineTo(-3, 0);
       ctx.lineTo(-6, 5);
       ctx.closePath();
+      if (sk.shipFill) {
+        ctx.fillStyle = sk.shipFill;
+        ctx.fill();
+      }
       ctx.stroke();
+      glowOff();
       ctx.restore();
     }
 
     function drawHUD() {
-      ctx.fillStyle = '#fff';
-      ctx.font = '15px monospace';
+      const sk = skinRef.current;
+      ctx.fillStyle = sk.text;
+      ctx.font = sk.font;
+      glowOn(sk.text);
       ctx.textAlign = 'left';
       ctx.fillText(`SCORE  ${score}`, 14, 26);
       ctx.textAlign = 'center';
       ctx.fillText(`NIVEL ${level}`, W / 2, 26);
+      glowOff();
       for (let i = 0; i < lives; i++) drawLifeIcon(W - 16 - i * 22, 18);
     }
 
     function draw() {
-      ctx.fillStyle = '#000';
+      ctx.fillStyle = skinRef.current.bg;
       ctx.fillRect(0, 0, W, H);
       particles.forEach((p) => p.draw());
       asteroids.forEach((a) => a.draw());

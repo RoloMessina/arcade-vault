@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 interface SnakeGameProps {
   paused: boolean;
+  skinKey?: string;
   onScoreChange: (score: number) => void;
   onLevelChange: (level: number) => void;
   onLivesChange: (lives: number) => void;
@@ -47,6 +48,88 @@ const FRUIT_SPRITES = [
   { x: 3454, y: 136, w: 150, h: 160 }, // pineapple
   { x: 3637, y: 136, w: 130, h: 160 }, // melon
 ];
+
+// ── Skins ─────────────────────────────────────────────────────────────────────
+
+type Skin = {
+  bg: string;
+  grid: string;
+  head: string;
+  body: string;
+  eye: string;
+  hudBg: string;
+  hudScore: string;
+  hudLevel: string;
+  border: string | null;
+  glow: number; // shadowBlur (0 = sin glow)
+  fade: boolean; // el cuerpo se desvanece hacia la cola
+  block: boolean; // bloques planos con bisel (estilo 8-bit)
+  bevelLight: string;
+  bevelDark: string;
+  smooth: boolean; // suavizado de sprites
+  fruitGlow: string | null;
+  font: string;
+};
+
+const SKINS: Record<string, Skin> = {
+  classic: {
+    bg: '#0a1a0a',
+    grid: 'rgba(0,255,80,0.06)',
+    head: '#00ff50',
+    body: '#00cc40',
+    eye: '#001a00',
+    hudBg: 'rgba(0,0,0,0.55)',
+    hudScore: '#00ff80',
+    hudLevel: '#80ffcc',
+    border: null,
+    glow: 0,
+    fade: true,
+    block: false,
+    bevelLight: '',
+    bevelDark: '',
+    smooth: true,
+    fruitGlow: null,
+    font: 'bold 14px monospace',
+  },
+  neon: {
+    bg: '#03040a',
+    grid: 'rgba(0,229,255,0.08)',
+    head: '#39ff88',
+    body: '#00d9ff',
+    eye: '#03040a',
+    hudBg: 'rgba(3,4,10,0.8)',
+    hudScore: '#ff2bd6',
+    hudLevel: '#00e5ff',
+    border: '#00e5ff',
+    glow: 12,
+    fade: false,
+    block: false,
+    bevelLight: '',
+    bevelDark: '',
+    smooth: true,
+    fruitGlow: '#ff2bd6',
+    font: 'bold 14px monospace',
+  },
+  retro: {
+    bg: '#1b1240',
+    grid: 'rgba(255,255,255,0.05)',
+    head: '#ffd23f',
+    body: '#3ecf4a',
+    eye: '#1b1240',
+    hudBg: '#0d0826',
+    hudScore: '#ffd23f',
+    hudLevel: '#5ee6ff',
+    border: '#5ee6ff',
+    glow: 0,
+    fade: false,
+    block: true,
+    bevelLight: '#b8ffa8',
+    bevelDark: '#1d7a2a',
+    smooth: false,
+    fruitGlow: null,
+    font: 'bold 14px "Courier New", monospace',
+  },
+};
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -103,6 +186,7 @@ function intervalMs(level: number): number {
 
 export default function SnakeGame({
   paused,
+  skinKey = 'classic',
   onScoreChange,
   onLevelChange,
   onLivesChange,
@@ -116,6 +200,12 @@ export default function SnakeGame({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const deadFiredRef = useRef(false);
+  const skinRef = useRef<Skin>(SKINS[skinKey] ?? SKINS.classic);
+
+  // Skin activa: se lee en cada frame, sin reiniciar la partida.
+  useEffect(() => {
+    skinRef.current = SKINS[skinKey] ?? SKINS.classic;
+  }, [skinKey]);
 
   // Sync paused ref so the loop reads the latest value without re-mounting.
   useEffect(() => {
@@ -141,14 +231,16 @@ export default function SnakeGame({
     // ── Draw ────────────────────────────────────────────────────────────────
     function draw() {
       const s = stateRef.current;
+      const k = skinRef.current;
       ctx.clearRect(0, 0, W, H);
+      ctx.imageSmoothingEnabled = k.smooth;
 
       // Background
-      ctx.fillStyle = '#0a1a0a';
+      ctx.fillStyle = k.bg;
       ctx.fillRect(0, 0, W, H);
 
       // Grid lines
-      ctx.strokeStyle = 'rgba(0,255,80,0.06)';
+      ctx.strokeStyle = k.grid;
       ctx.lineWidth = 1;
       for (let c = 0; c <= COLS; c++) {
         ctx.beginPath();
@@ -166,23 +258,37 @@ export default function SnakeGame({
       // Snake body
       s.snake.forEach((seg, i) => {
         const isHead = i === 0;
-        const alpha = isHead ? 1 : Math.max(0.4, 1 - i * 0.03);
+        const alpha = isHead || !k.fade ? 1 : Math.max(0.4, 1 - i * 0.03);
         ctx.globalAlpha = alpha;
-        ctx.fillStyle = isHead ? '#00ff50' : '#00cc40';
-        const pad = isHead ? 2 : 4;
-        ctx.beginPath();
-        ctx.roundRect(
-          seg.x * CELL + pad,
-          seg.y * CELL + pad,
-          CELL - pad * 2,
-          CELL - pad * 2,
-          isHead ? 6 : 4,
-        );
-        ctx.fill();
+        const color = isHead ? k.head : k.body;
+        const pad = k.block ? 2 : isHead ? 2 : 4;
+        const x = seg.x * CELL + pad;
+        const y = seg.y * CELL + pad;
+        const size = CELL - pad * 2;
+        ctx.fillStyle = color;
+        if (k.glow) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = k.glow;
+        }
+        if (k.block) {
+          ctx.fillRect(x, y, size, size);
+          // Bisel 2px: luz arriba-izquierda, sombra abajo-derecha
+          ctx.fillStyle = isHead ? '#fff2b0' : k.bevelLight;
+          ctx.fillRect(x, y, size, 2);
+          ctx.fillRect(x, y, 2, size);
+          ctx.fillStyle = isHead ? '#b07a00' : k.bevelDark;
+          ctx.fillRect(x, y + size - 2, size, 2);
+          ctx.fillRect(x + size - 2, y, 2, size);
+        } else {
+          ctx.beginPath();
+          ctx.roundRect(x, y, size, size, isHead ? 6 : 4);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
 
         // Head eyes
         if (isHead) {
-          ctx.fillStyle = '#001a00';
+          ctx.fillStyle = k.eye;
           const d = s.dir;
           const ex = seg.x * CELL + CELL / 2 + d.x * 8;
           const ey = seg.y * CELL + CELL / 2 + d.y * 8;
@@ -203,6 +309,10 @@ export default function SnakeGame({
       const fx = s.fruit.pos.x * CELL;
       const fy = s.fruit.pos.y * CELL;
       const padding = 4;
+      if (k.fruitGlow) {
+        ctx.shadowColor = k.fruitGlow;
+        ctx.shadowBlur = 14;
+      }
       ctx.drawImage(
         img,
         sp.x,
@@ -214,19 +324,32 @@ export default function SnakeGame({
         CELL - padding * 2,
         CELL - padding * 2,
       );
+      ctx.shadowBlur = 0;
+
+      // Borde del tablero
+      if (k.border) {
+        ctx.strokeStyle = k.border;
+        ctx.lineWidth = 3;
+        if (k.glow) {
+          ctx.shadowColor = k.border;
+          ctx.shadowBlur = k.glow;
+        }
+        ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
+        ctx.shadowBlur = 0;
+      }
 
       // HUD overlay
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillStyle = k.hudBg;
       ctx.fillRect(0, 0, W, 38);
 
-      ctx.font = 'bold 14px monospace';
+      ctx.font = k.font;
       ctx.textBaseline = 'middle';
 
-      ctx.fillStyle = '#00ff80';
+      ctx.fillStyle = k.hudScore;
       ctx.textAlign = 'left';
       ctx.fillText(`SCORE  ${String(s.score).padStart(6, '0')}`, 12, 19);
 
-      ctx.fillStyle = '#80ffcc';
+      ctx.fillStyle = k.hudLevel;
       ctx.textAlign = 'right';
       ctx.fillText(`LEVEL  ${String(s.level).padStart(2, '0')}`, W - 12, 19);
 

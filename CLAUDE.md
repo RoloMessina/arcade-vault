@@ -55,6 +55,13 @@ Los skills `spec` y `spec-impl` viven en `.agents/skills/` y se exponen en `.cla
   - Solo lectura sobre el código y Supabase (`execute_sql`, `list_tables`); únicamente escribe en su memoria (`.claude/agent-memory/game-planner/`: `MEMORY.md`, `sugerencias.md`, `preferencias.md`) y en `references/game-sugestion-to_do.md` (to-do visible: Recomendado actual / Pendientes / Implementados / Descartados).
   - No repite juegos ya sugeridos. Flujo: `game-planner` → `/add-game <descripción>` → `/spec-impl NN`.
 
+- `game-jam` (`.claude/agents/game-jam.md`, modelo sonnet) — recibe un **tema** y genera tres specs completos (estado `Borrador`, mismo formato que `specs/07-09`) en `specs/game-jam/<game-id>/NN-<game-id>-game.md`. Solo escribe specs; no código ni BD. Flujo: `game-jam <tema>` → revisar → copiar a `specs/` → `/spec-impl NN`.
+
+- `skin-designer` (`.claude/agents/skin-designer.md`, modelo sonnet) — audita y configura las skins de los juegos. Regla: todo juego debe tener al menos 3 skins — `classic` (default), `neon` y `retro` — y las tres deben verse bien en modo oscuro.
+  - Dos fases: auditoría (solo lectura) e implementación juego a juego (solo si se pide). Solo toca apariencia: objetos `SKINS` y `draw()` en `components/games/`, selector en las play-pages y estilos del selector.
+  - Patrón de referencia: `TetrisGame.tsx` (prop `skinKey`, `SKINS`, `skinRef`) y su play-page (selector + `localStorage` `<game-id>-skin`).
+  - Estado actual en `references/templates/games-with-themes.md` (hay que actualizarlo al completar un juego). Hoy ningún juego cumple: Tetris usa `retro` como default y no tiene `classic`; Asteroids, Arkanoid y Snake no tienen skins.
+
 ## Hooks y MCP
 
 - **Hook PostToolUse** (`.claude/settings.json`, `Write|Edit|MultiEdit`): ejecuta `.claude/hooks/format-and-lint.sh` → prettier en ts/tsx/js/jsx/json/css/md y `eslint --fix` en ts/tsx/js/jsx. No hace falta formatear a mano.
@@ -100,5 +107,6 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 | 07  | Juego Tetris                          | Implementado |
 | 08  | Juego Arkanoid                        | Aprobado (verificar implementación) |
 | 09  | Juego Snake                           | Implementado |
+| 12  | Juego Frog Crossing (Frogger)         | Aprobado (pendiente `/spec-impl 12`) |
 
 Para añadir un juego: `/add-game` → genera `specs/NN-<id>-game.md` (estado `Borrador`) → revisar y pasar a `Aprobado` → `/spec-impl NN`. Las tablas `games`/`scores` ya existen; cada juego nuevo solo requiere un INSERT en `games`.
