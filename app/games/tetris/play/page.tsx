@@ -141,7 +141,7 @@ export default function TetrisPlay() {
       </div>
 
       <div className="crt">
-        <div className="crt-screen">
+        <div className="crt-screen crt-screen-tall">
           <TetrisGame
             key={gameKey}
             paused={paused}

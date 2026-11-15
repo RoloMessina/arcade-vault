@@ -519,10 +519,28 @@ export default function TetrisGame({
         gap: 12,
         alignItems: 'flex-start',
         justifyContent: 'center',
+        width: '100%',
+        height: '100%',
       }}
     >
-      <canvas ref={boardRef} width={300} height={600} />
-      <canvas ref={nextRef} width={120} height={120} />
+      <canvas
+        ref={boardRef}
+        width={300}
+        height={600}
+        style={{
+          height: '100%',
+          maxHeight: 600,
+          width: 'auto',
+          maxWidth: '70%',
+          objectFit: 'contain',
+        }}
+      />
+      <canvas
+        ref={nextRef}
+        width={120}
+        height={120}
+        style={{ width: 120, maxWidth: '26%', height: 'auto' }}
+      />
     </div>
   );
 }
