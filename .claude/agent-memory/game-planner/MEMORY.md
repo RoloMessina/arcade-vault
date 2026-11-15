@@ -1,0 +1,2 @@
+- [Sugerencias](sugerencias.md) — tabla de juegos sugeridos/descartados/elegidos (25 registrados; ronda 2026-11-13 consolidada)
+- [Preferencias](preferencias.md) — gustos del usuario y estado de specs
