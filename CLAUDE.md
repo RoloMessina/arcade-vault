@@ -55,6 +55,8 @@ Los skills `spec` y `spec-impl` viven en `.agents/skills/` y se exponen en `.cla
   - Solo lectura sobre el código y Supabase (`execute_sql`, `list_tables`); únicamente escribe en su memoria (`.claude/agent-memory/game-planner/`: `MEMORY.md`, `sugerencias.md`, `preferencias.md`) y en `references/game-sugestion-to_do.md` (to-do visible: Recomendado actual / Pendientes / Implementados / Descartados).
   - No repite juegos ya sugeridos. Flujo: `game-planner` → `/add-game <descripción>` → `/spec-impl NN`.
 
+- `game-jam` (`.claude/agents/game-jam.md`, modelo sonnet) — recibe un **tema** y genera tres specs completos (estado `Borrador`, mismo formato que `specs/07-09`) en `specs/game-jam/<game-id>/NN-<game-id>-game.md`. Solo escribe specs; no código ni BD. Flujo: `game-jam <tema>` → revisar → copiar a `specs/` → `/spec-impl NN`.
+
 ## Hooks y MCP
 
 - **Hook PostToolUse** (`.claude/settings.json`, `Write|Edit|MultiEdit`): ejecuta `.claude/hooks/format-and-lint.sh` → prettier en ts/tsx/js/jsx/json/css/md y `eslint --fix` en ts/tsx/js/jsx. No hace falta formatear a mano.
