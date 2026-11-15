@@ -9,7 +9,28 @@ const ArkanoidGame = dynamic(() => import('@/components/games/ArkanoidGame'), {
   ssr: false,
 });
 
+const SKIN_OPTIONS = [
+  { key: 'classic', label: 'Clásico' },
+  { key: 'neon', label: 'Neon' },
+  { key: 'retro', label: 'Retro' },
+];
+
 export default function ArkanoidPlay() {
+  const [skinKey, setSkinKey] = useState('classic');
+
+  useEffect(() => {
+    const stored = localStorage.getItem('arkanoid-skin');
+    if (stored && SKIN_OPTIONS.some((s) => s.key === stored))
+      // Lectura de localStorage tras montar (evita romper el SSR)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSkinKey(stored);
+  }, []);
+
+  function changeSkin(key: string) {
+    setSkinKey(key);
+    localStorage.setItem('arkanoid-skin', key);
+  }
+
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [level, setLevel] = useState(1);
@@ -69,6 +90,30 @@ export default function ArkanoidPlay() {
             <div className="l">Nivel</div>
             <div className="v">{String(level).padStart(2, '0')}</div>
           </div>
+          <div className="hud-stat">
+            <div className="l">Skin</div>
+            <div className="v">
+              <select
+                value={skinKey}
+                onChange={(e) => changeSkin(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--ink-dim)',
+                  color: 'var(--ink)',
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                }}
+              >
+                {SKIN_OPTIONS.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
         <div className="hud-actions">
           <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
@@ -88,6 +133,7 @@ export default function ArkanoidPlay() {
           <ArkanoidGame
             key={gameKey}
             paused={paused}
+            skinKey={skinKey}
             onScoreChange={handleScoreChange}
             onLivesChange={handleLivesChange}
             onLevelChange={handleLevelChange}

@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 interface ArkanoidGameProps {
   paused: boolean;
+  skinKey?: string;
   onScoreChange: (score: number) => void;
   onLivesChange: (lives: number) => void;
   onLevelChange: (level: number) => void;
@@ -143,6 +144,65 @@ const LEVELS: Level[] = (() => {
   ];
 })();
 
+// ── Skins ─────────────────────────────────────────────────────────────────────
+
+type Skin = {
+  mode: 'sprite' | 'neon' | 'retro';
+  bg: string;
+  frame: string;
+  text: string;
+  paddle: string;
+  ball: string;
+  blocks: Record<string, string>;
+};
+
+const SKINS: Record<string, Skin> = {
+  // Reproduce el aspecto original (spritesheet) sobre fondo azul muy oscuro
+  classic: {
+    mode: 'sprite',
+    bg: '#0b0e1a',
+    frame: '#2a3050',
+    text: '#e6e9ff',
+    paddle: '#e6e9ff',
+    ball: '#e6e9ff',
+    blocks: {},
+  },
+  neon: {
+    mode: 'neon',
+    bg: '#03030a',
+    frame: '#00f0ff',
+    text: '#e0faff',
+    paddle: '#00f0ff',
+    ball: '#ffffaa',
+    blocks: {
+      red: '#ff2a55',
+      yellow: '#fff200',
+      cyan: '#00f0ff',
+      magenta: '#d400ff',
+      hotpink: '#ff3df0',
+      green: '#39ff14',
+      gray: '#a0a8d0',
+    },
+  },
+  retro: {
+    mode: 'retro',
+    bg: '#14123a',
+    frame: '#5b54c8',
+    text: '#f4e8a8',
+    paddle: '#f4e8a8',
+    ball: '#ffffff',
+    blocks: {
+      red: '#e8423c',
+      yellow: '#f0c030',
+      cyan: '#3cc0d8',
+      magenta: '#a040c8',
+      hotpink: '#e86aa8',
+      green: '#48b848',
+      gray: '#9890b0',
+    },
+  },
+};
+
 // ── Game constants ─────────────────────────────────────────────────────────────
 
 const W = 800;
@@ -177,6 +237,7 @@ type Explosion = {
 
 export default function ArkanoidGame({
   paused,
+  skinKey = 'classic',
   onScoreChange,
   onLivesChange,
   onLevelChange,
@@ -184,6 +245,11 @@ export default function ArkanoidGame({
 }: ArkanoidGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
+  const skinRef = useRef<Skin>(SKINS[skinKey] ?? SKINS.classic);
+
+  useEffect(() => {
+    skinRef.current = SKINS[skinKey] ?? SKINS.classic;
+  }, [skinKey]);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -406,12 +472,68 @@ export default function ArkanoidGame({
     }
 
     // ── Draw ─────────────────────────────────────────────────────────────────
+    function bevelRect(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      color: string,
+    ) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.fillRect(x, y, w, 2);
+      ctx.fillRect(x, y, 2, h);
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(x, y + h - 2, w, 2);
+      ctx.fillRect(x + w - 2, y, 2, h);
+      ctx.strokeStyle = '#0a0820';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    }
+
+    function glowRect(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      color: string,
+      blur: number,
+    ) {
+      ctx.shadowColor = color;
+      ctx.shadowBlur = blur;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 1.5, y + 1.5, w - 3, h - 3);
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+    }
+
     function draw() {
-      ctx.fillStyle = '#000';
+      const skin = skinRef.current;
+      const sprite = skin.mode === 'sprite';
+      const neon = skin.mode === 'neon';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = skin.bg;
       ctx.fillRect(0, 0, W, H);
 
-      for (const block of blocks)
-        if (block.alive)
+      // Borde del tablero (para que el canvas no desaparezca en la página oscura)
+      ctx.strokeStyle = skin.frame;
+      ctx.lineWidth = neon ? 2 : 3;
+      if (neon) {
+        ctx.shadowColor = skin.frame;
+        ctx.shadowBlur = 10;
+      }
+      ctx.strokeRect(1, 1, W - 2, H - 2);
+      ctx.shadowBlur = 0;
+
+      for (const block of blocks) {
+        if (!block.alive) continue;
+        if (sprite) {
           drawSprite(
             'block_' + block.color,
             block.x,
@@ -419,37 +541,98 @@ export default function ArkanoidGame({
             block.w,
             block.h,
           );
+        } else {
+          const c = skin.blocks[block.color] ?? '#ffffff';
+          if (neon) glowRect(block.x, block.y, block.w, block.h, c, 10);
+          else bevelRect(block.x, block.y, block.w, block.h, c);
+        }
+      }
 
       for (const exp of explosions) {
-        const frameIndex = Math.min(
-          Math.floor((exp.elapsed / EXPLOSION_DURATION) * 4),
-          3,
+        const t = exp.elapsed / EXPLOSION_DURATION;
+        if (sprite) {
+          const frameIndex = Math.min(Math.floor(t * 4), 3);
+          drawFrame(
+            EXPLOSION_FRAMES[exp.color][frameIndex],
+            exp.x,
+            exp.y,
+            exp.w,
+            exp.h,
+          );
+        } else {
+          const c = skin.blocks[exp.color] ?? '#ffffff';
+          ctx.globalAlpha = Math.max(0, 1 - t);
+          if (neon) {
+            ctx.shadowColor = c;
+            ctx.shadowBlur = 16;
+            ctx.fillStyle = c;
+            ctx.fillRect(exp.x, exp.y, exp.w, exp.h);
+            ctx.shadowBlur = 0;
+          } else {
+            // Parpadeo 8-bit por pasos
+            ctx.fillStyle = Math.floor(t * 4) % 2 === 0 ? '#ffffff' : c;
+            ctx.fillRect(exp.x + 4, exp.y + 4, exp.w - 8, exp.h - 8);
+          }
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      if (sprite) {
+        drawSprite('paddle', paddle.x, paddle.y, paddle.w, paddle.h);
+        drawSprite('ball', ball.x, ball.y, ball.w, ball.h);
+      } else if (neon) {
+        glowRect(paddle.x, paddle.y - 1, paddle.w, paddle.h + 2, skin.paddle, 14);
+        ctx.shadowColor = skin.ball;
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = skin.ball;
+        ctx.beginPath();
+        ctx.arc(
+          ball.x + ball.w / 2,
+          ball.y + ball.h / 2,
+          ball.w / 2 - 2,
+          0,
+          Math.PI * 2,
         );
-        drawFrame(
-          EXPLOSION_FRAMES[exp.color][frameIndex],
-          exp.x,
-          exp.y,
-          exp.w,
-          exp.h,
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      } else {
+        bevelRect(paddle.x, paddle.y, paddle.w, paddle.h, skin.paddle);
+        bevelRect(
+          Math.round(ball.x) + 2,
+          Math.round(ball.y) + 2,
+          ball.w - 4,
+          ball.h - 4,
+          skin.ball,
         );
       }
 
-      drawSprite('paddle', paddle.x, paddle.y, paddle.w, paddle.h);
-      drawSprite('ball', ball.x, ball.y, ball.w, ball.h);
-
-      // Internal HUD (score top-left, level top-center, lives as sprites top-right)
-      ctx.fillStyle = '#fff';
+      // Internal HUD (score top-left, level top-center, lives top-right)
+      ctx.fillStyle = skin.text;
       ctx.font = 'bold 18px monospace';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText('Score: ' + score, 10, 10);
+      if (neon) {
+        ctx.shadowColor = skin.frame;
+        ctx.shadowBlur = 8;
+      }
+      ctx.fillText('Score: ' + score, 12, 12);
       ctx.textAlign = 'center';
-      ctx.fillText('Nivel: ' + currentLevel, W / 2, 10);
+      ctx.fillText('Nivel: ' + currentLevel, W / 2, 12);
+      ctx.shadowBlur = 0;
       const ballSize = 16;
       const ballSpacing = 4;
       for (let i = 0; i < lives; i++) {
-        const bx = W - 10 - (lives - i) * (ballSize + ballSpacing);
-        drawSprite('ball', bx, 10, ballSize, ballSize);
+        const bx = W - 12 - (lives - i) * (ballSize + ballSpacing);
+        if (sprite) drawSprite('ball', bx, 12, ballSize, ballSize);
+        else if (neon) {
+          ctx.shadowColor = skin.ball;
+          ctx.shadowBlur = 8;
+          ctx.fillStyle = skin.ball;
+          ctx.beginPath();
+          ctx.arc(bx + 8, 20, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        } else bevelRect(bx + 2, 14, 12, 12, skin.ball);
       }
     }
 

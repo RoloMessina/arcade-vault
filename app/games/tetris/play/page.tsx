@@ -10,15 +10,17 @@ const TetrisGame = dynamic(() => import('@/components/games/TetrisGame'), {
 });
 
 const SKIN_OPTIONS = [
-  { key: 'retro', label: 'Retro' },
+  { key: 'classic', label: 'Clásico' },
   { key: 'neon', label: 'Neon' },
-  { key: 'pastel', label: 'Pastel' },
-  { key: 'pixel', label: 'Pixel Art' },
+  { key: 'retro', label: 'Retro' },
 ];
 
 function getSavedSkin() {
-  if (typeof window === 'undefined') return 'retro';
-  return localStorage.getItem('tetris-skin') ?? 'retro';
+  if (typeof window === 'undefined') return 'classic';
+  const saved = localStorage.getItem('tetris-skin');
+  return SKIN_OPTIONS.some((s) => s.key === saved)
+    ? (saved as string)
+    : 'classic';
 }
 
 export default function TetrisPlay() {
@@ -30,7 +32,7 @@ export default function TetrisPlay() {
   const [name, setName] = useState('INVITADO');
   const [saved, setSaved] = useState(false);
   const [gameKey, setGameKey] = useState(0);
-  const [skinKey, setSkinKey] = useState('retro');
+  const [skinKey, setSkinKey] = useState('classic');
 
   useEffect(() => {
     setSkinKey(getSavedSkin());

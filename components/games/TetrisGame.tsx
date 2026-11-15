@@ -26,8 +26,8 @@ type Skin = {
 };
 
 const SKINS: Record<string, Skin> = {
-  retro: {
-    name: 'Retro',
+  classic: {
+    name: 'Clásico',
     colors: [
       null,
       '#4dd0e1',
@@ -39,7 +39,7 @@ const SKINS: Record<string, Skin> = {
       '#ffb74d',
       '#9e9e9e',
     ],
-    boardBg: null,
+    boardBg: '#12141f',
     drawBlock(ctx, x, y, ci, size, alpha = 1) {
       if (!ci) return;
       ctx.globalAlpha = alpha;
@@ -47,6 +47,38 @@ const SKINS: Record<string, Skin> = {
       ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
       ctx.fillStyle = 'rgba(255,255,255,0.12)';
       ctx.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+      ctx.globalAlpha = 1;
+    },
+  },
+  retro: {
+    name: 'Retro',
+    colors: [
+      null,
+      '#2ee6e6',
+      '#f8d800',
+      '#b040e0',
+      '#38c838',
+      '#e83030',
+      '#4070f0',
+      '#f88820',
+      '#a0a0a0',
+    ],
+    boardBg: '#1a1038',
+    drawBlock(ctx, x, y, ci, size, alpha = 1) {
+      if (!ci) return;
+      const px = x * size + 1;
+      const py = y * size + 1;
+      const s = size - 2;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = this.colors[ci] as string;
+      ctx.fillRect(px, py, s, s);
+      // bisel 2px: luz arriba-izquierda, sombra abajo-derecha
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.fillRect(px, py, s, 2);
+      ctx.fillRect(px, py, 2, s);
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(px, py + s - 2, s, 2);
+      ctx.fillRect(px + s - 2, py, 2, s);
       ctx.globalAlpha = 1;
     },
   },
@@ -79,76 +111,6 @@ const SKINS: Record<string, Skin> = {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(x * size + 1.75, y * size + 1.75, size - 3.5, size - 3.5);
       ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-    },
-  },
-  pastel: {
-    name: 'Pastel',
-    colors: [
-      null,
-      '#bae1ff',
-      '#ffffba',
-      '#e8baff',
-      '#baffc9',
-      '#ffb3ba',
-      '#ffdfba',
-      '#ffd9ba',
-      '#d9d9d9',
-    ],
-    boardBg: '#f8f0ff',
-    drawBlock(ctx, x, y, ci, size, alpha = 1) {
-      if (!ci) return;
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = this.colors[ci] as string;
-      ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.65)';
-      ctx.fillRect(x * size + 2, y * size + 2, size - 4, 5);
-      ctx.fillRect(x * size + 2, y * size + 2, 5, size - 4);
-      ctx.fillStyle = 'rgba(0,0,0,0.08)';
-      ctx.fillRect(x * size + 2, y * size + size - 5, size - 4, 4);
-      ctx.fillRect(x * size + size - 5, y * size + 2, 4, size - 4);
-      ctx.globalAlpha = 1;
-    },
-  },
-  pixel: {
-    name: 'Pixel Art',
-    colors: [
-      null,
-      '#3ab8c8',
-      '#d4b840',
-      '#9a50a8',
-      '#60a060',
-      '#c05060',
-      '#7090d8',
-      '#d08030',
-      '#808080',
-    ],
-    boardBg: '#1a1a2e',
-    drawBlock(ctx, x, y, ci, size, alpha = 1) {
-      if (!ci) return;
-      const color = this.colors[ci] as string;
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = color;
-      ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-      const r = parseInt(color.slice(1, 3), 16);
-      const g = parseInt(color.slice(3, 5), 16);
-      const b = parseInt(color.slice(5, 7), 16);
-      const dark = `rgba(${Math.max(0, r - 60)},${Math.max(0, g - 60)},${Math.max(0, b - 60)},0.7)`;
-      ctx.strokeStyle = dark;
-      ctx.lineWidth = 0.5;
-      const bx = x * size + 1;
-      const by = y * size + 1;
-      const bw = size - 2;
-      for (let i = 4; i < bw; i += 4) {
-        ctx.beginPath();
-        ctx.moveTo(bx + i, by);
-        ctx.lineTo(bx + i, by + bw);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(bx, by + i);
-        ctx.lineTo(bx + bw, by + i);
-        ctx.stroke();
-      }
       ctx.globalAlpha = 1;
     },
   },
@@ -205,7 +167,7 @@ const BLOCK = 30;
 
 export default function TetrisGame({
   paused,
-  skinKey = 'retro',
+  skinKey = 'classic',
   onScoreChange,
   onLivesChange,
   onLevelChange,
@@ -215,7 +177,7 @@ export default function TetrisGame({
   const nextRef = useRef<HTMLCanvasElement>(null);
 
   const pausedRef = useRef(paused);
-  const skinRef = useRef<Skin>(SKINS[skinKey] ?? SKINS.retro);
+  const skinRef = useRef<Skin>(SKINS[skinKey] ?? SKINS.classic);
   const cbScore = useRef(onScoreChange);
   const cbLives = useRef(onLivesChange);
   const cbLevel = useRef(onLevelChange);
@@ -225,7 +187,7 @@ export default function TetrisGame({
     pausedRef.current = paused;
   }, [paused]);
   useEffect(() => {
-    skinRef.current = SKINS[skinKey] ?? SKINS.retro;
+    skinRef.current = SKINS[skinKey] ?? SKINS.classic;
   }, [skinKey]);
   useEffect(() => {
     cbScore.current = onScoreChange;
@@ -463,6 +425,7 @@ export default function TetrisGame({
       }
 
       drawHUD();
+      drawNext();
     }
 
     function init() {
