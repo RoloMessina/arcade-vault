@@ -62,6 +62,11 @@ Los skills `spec` y `spec-impl` viven en `.agents/skills/` y se exponen en `.cla
   - Patrón de referencia: `TetrisGame.tsx` (prop `skinKey`, `SKINS`, `skinRef`) y su play-page (selector + `localStorage` `<game-id>-skin`).
   - Estado actual en `references/templates/games-with-themes.md` (hay que actualizarlo al completar un juego). Hoy ningún juego cumple: Tetris usa `retro` como default y no tiene `classic`; Asteroids, Arkanoid y Snake no tienen skins.
 
+- `mobile-porter` (`.claude/agents/mobile-porter.md`, modelo sonnet) — revisa que la web se vea y juegue bien en el navegador del móvil (no hay app nativa ni PWA): sin scroll horizontal, controles táctiles, canvas escalado y áreas táctiles ≥ 44 px.
+  - Dos fases: auditoría (solo lectura, con capturas en `.playwright-screenshots/mobile-*.png`) y arreglos (solo si se piden). Solo toca CSS, maquetación, tamaño del canvas y `TouchControls`; nunca lógica de juego, skins ni specs.
+  - Patrón de referencia: `components/games/TouchControls.tsx` (eventos de teclado sintéticos; `TOUCH_BUTTONS` por play-page) y `@media (hover: none) and (pointer: coarse)` en `app/globals.css`.
+  - Estado en `references/templates/mobile-status.md` (hay que actualizarlo al añadir un juego o una página).
+
 ## Hooks y MCP
 
 - **Hook PostToolUse** (`.claude/settings.json`, `Write|Edit|MultiEdit`): ejecuta `.claude/hooks/format-and-lint.sh` → prettier en ts/tsx/js/jsx/json/css/md y `eslint --fix` en ts/tsx/js/jsx. No hace falta formatear a mano.
