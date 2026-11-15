@@ -12,8 +12,9 @@ Referencia del estado de skins por juego. Regla del proyecto: todo juego debe te
 | Asteroids | Sí                | Sí   | Sí    | Sí (`asteroids-skin`)           | Sí      | Sí     |
 | Arkanoid  | Sí                | Sí   | Sí    | Sí (`arkanoid-skin`)            | Sí      | Sí     |
 | Snake     | Sí                | Sí   | Sí    | Sí (`snake-skin`)               | Sí      | Sí     |
+| Frogger   | Sí                | Sí   | Sí    | Sí (`frogger-skin`)             | Sin verificar visualmente | Sí (pendiente de verificación) |
 
-Juegos con las 3 skins completas: **Tetris**, **Asteroids**, **Arkanoid**, **Snake**.
+Juegos con las 3 skins completas: **Tetris**, **Asteroids**, **Arkanoid**, **Snake**, **Frogger**.
 
 ## Notas por juego
 
@@ -21,6 +22,7 @@ Juegos con las 3 skins completas: **Tetris**, **Asteroids**, **Arkanoid**, **Sna
 - **Asteroids** — `classic` (default), `neon`, `retro` implementadas (2026-11-15). Verificadas visualmente con Playwright en modo oscuro (las 3 skins se ven bien, el selector persiste en `localStorage` tras recargar). Sin probar: cambio de skin a mitad de partida.
 - **Arkanoid** — `classic` (conserva sprites de `/spritesheet-breakout.png`), `neon` y `retro` (primitivas del canvas) implementadas (2026-11-15). Verificadas con Playwright en modo oscuro; persistencia OK. Sin probar: cambio de skin a mitad de partida. Contraste a vigilar: bloque `gray` y pala en `classic` (dependen del spritesheet) y relleno tenue de bloques en `neon`.
 - **Snake** — `classic`, `neon` y `retro` implementadas (2026-11-15). Verificadas con Playwright en modo oscuro (en pausa); persistencia OK. Sin probar: cambio de skin con la partida en marcha. Limitación: con la partida terminada, cambiar de skin no repinta el canvas.
+- **Frogger** — `classic` (default, reproduce los colores originales con texto `#e6e9ff`), `neon` (fondo casi negro, entidades con relleno tenue + contorno con glow) y `retro` (paleta plana, bloques con bisel de 2 px, ruedas/tortugas/rana cuadradas) implementadas (2026-11-15). Solo comprobado con `tsc` y `eslint`; sin verificación visual con Playwright ni prueba de cambio de skin a mitad de partida. `skinRef` evita reiniciar el loop.
 
 ## Convenciones
 

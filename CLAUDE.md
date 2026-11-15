@@ -45,6 +45,7 @@ Nunca commitear `.env.local`.
 - Usa siempre `/frontend-design` para diseñar la interfaz de usuario.
 - `/spec` — escribe un spec en `specs/NN-<slug>.md` sección por sección (template en `.claude/skills/spec/template.md`).
 - `/spec-impl NN` — implementa un spec paso a paso.
+- `/spec-impl-game NN` — skill propio (`.claude/skills/spec-impl-game/`, `disable-model-invocation`). Hace lo mismo que `/spec-impl` (lee y aplica sus fases 1–4) y al terminar lanza **en secuencia** `skin-designer` y luego `mobile-porter` sobre el juego nuevo (nunca en paralelo: tocan los mismos archivos).
 - `/add-game <references/started-games/NN-name | descripción>` — skill propio (`.claude/skills/add-game/`, `disable-model-invocation`). Genera **solo el spec** de un juego canvas nuevo (componente, play-page, INSERT en `games`, leaderboard). Luego se implementa con `/spec-impl`.
 
 Los skills `spec` y `spec-impl` viven en `.agents/skills/` y se exponen en `.claude/skills/` (symlinks).
@@ -112,6 +113,7 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 | 07  | Juego Tetris                          | Implementado |
 | 08  | Juego Arkanoid                        | Aprobado (verificar implementación) |
 | 09  | Juego Snake                           | Implementado |
-| 12  | Juego Frog Crossing (Frogger)         | Aprobado (pendiente `/spec-impl 12`) |
+| 12  | Juego Frog Crossing (Frogger)         | Aprobado (duplicado de 13; decidir si pasa a Obsoleto) |
+| 13  | Juego Frogger (spec de game-jam)      | Implementado (3 criterios de guardado de score pendientes de verificar a mano) |
 
-Para añadir un juego: `/add-game` → genera `specs/NN-<id>-game.md` (estado `Borrador`) → revisar y pasar a `Aprobado` → `/spec-impl NN`. Las tablas `games`/`scores` ya existen; cada juego nuevo solo requiere un INSERT en `games`.
+Para añadir un juego: `/add-game` → genera `specs/NN-<id>-game.md` (estado `Borrador`) → revisar y pasar a `Aprobado` → `/spec-impl-game NN` (o `/spec-impl NN` si no se quieren skins/móvil automáticos). Las tablas `games`/`scores` ya existen; cada juego nuevo solo requiere un INSERT en `games`.
