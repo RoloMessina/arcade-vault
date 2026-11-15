@@ -2,6 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import TouchControls, { type TouchButton } from '@/components/games/TouchControls';
+
+const TOUCH_BUTTONS: TouchButton[] = [
+  { label: '◀', key: 'ArrowLeft', code: 'ArrowLeft', area: 'left' },
+  { label: '▶', key: 'ArrowRight', code: 'ArrowRight', area: 'right' },
+];
 import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -169,6 +175,8 @@ export default function ArkanoidPlay() {
           <span>CARGA · 1MB</span>
         </div>
       </div>
+
+      {!over && <TouchControls buttons={TOUCH_BUTTONS} />}
 
       {over && (
         <div className="modal-bd">

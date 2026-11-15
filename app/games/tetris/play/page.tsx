@@ -2,6 +2,15 @@
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import TouchControls, { type TouchButton } from '@/components/games/TouchControls';
+
+const TOUCH_BUTTONS: TouchButton[] = [
+  { label: '◀', key: 'ArrowLeft', code: 'ArrowLeft', area: 'left', repeatMs: 120 },
+  { label: '▶', key: 'ArrowRight', code: 'ArrowRight', area: 'right', repeatMs: 120 },
+  { label: '▼', key: 'ArrowDown', code: 'ArrowDown', area: 'down', repeatMs: 80 },
+  { label: 'ROTAR', key: 'ArrowUp', code: 'ArrowUp', area: 'up' },
+  { label: 'CAER', key: ' ', code: 'Space', area: 'a' },
+];
 import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -132,7 +141,7 @@ export default function TetrisPlay() {
       </div>
 
       <div className="crt">
-        <div className="crt-screen">
+        <div className="crt-screen crt-screen-tall">
           <TetrisGame
             key={gameKey}
             paused={paused}
@@ -172,6 +181,8 @@ export default function TetrisPlay() {
           <span>CARGA · 1MB</span>
         </div>
       </div>
+
+      {!over && <TouchControls buttons={TOUCH_BUTTONS} />}
 
       {over && (
         <div className="modal-bd">
