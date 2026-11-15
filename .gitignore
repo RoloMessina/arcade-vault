@@ -7,6 +7,9 @@
 .playwright-mcp/*
 !.playwright-mcp/.gitkeep
 
+# carpeta con nombre mal escrito creada por error con capturas
+.playwrite-screemshots/
+
 # dependencies
 /node_modules
 /.pnp
