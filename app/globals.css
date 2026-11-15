@@ -741,6 +741,31 @@ a {
   filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.6));
 }
 
+.cover-frogger {
+  background: linear-gradient(
+    180deg,
+    #0a2a4a 0 40%,
+    #1a3a12 40% 52%,
+    #14141c 52% 100%
+  );
+}
+.cover-frogger::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 50% 46%, #7dff3a 0 14px, transparent 15px),
+    linear-gradient(90deg, #8a5a2b 0 70px, transparent 70px) 15% 20% / 140px 10px
+      no-repeat,
+    linear-gradient(90deg, #8a5a2b 0 50px, transparent 50px) 65% 28% / 140px 10px
+      no-repeat,
+    linear-gradient(90deg, #ff3b3b 0 34px, transparent 34px) 20% 68% / 120px 12px
+      no-repeat,
+    linear-gradient(90deg, #f5d000 0 34px, transparent 34px) 70% 82% / 120px 12px
+      no-repeat;
+  filter: drop-shadow(0 0 6px rgba(125, 255, 58, 0.5));
+}
+
 .cover-glot {
   background: radial-gradient(circle at 50% 50%, #1a002a, #0a0a18);
 }
@@ -1076,6 +1101,14 @@ a {
   .crt-screen.crt-screen-tall {
     aspect-ratio: 3 / 4;
   }
+  /* Frogger (canvas 640x560 = 8:7) en móvil */
+  .crt-screen.crt-screen-frogger {
+    aspect-ratio: 8 / 7;
+  }
+  .crt-screen-frogger .frogger-canvas {
+    width: 100%;
+    height: 100%;
+  }
 }
 .crt-screen::after {
   content: '';
@@ -1325,6 +1358,20 @@ a {
 .modal .input-row input:focus {
   border-color: var(--cyan);
   box-shadow: 0 0 10px rgba(0, 245, 255, 0.35);
+}
+/* Modal de Frogger en móvil: el botón de guardar no debe desbordar */
+@media (max-width: 720px) {
+  .modal-frogger .input-row {
+    flex-wrap: wrap;
+  }
+  .modal-frogger .input-row input {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+  .modal-frogger .input-row .btn {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
 }
 .modal .actions {
   display: flex;
