@@ -13,6 +13,7 @@ const TOUCH_BUTTONS: TouchButton[] = [
 ];
 import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useUser } from '@/app/context/UserContext';
 
 const TetrisGame = dynamic(() => import('@/components/games/TetrisGame'), {
   ssr: false,
@@ -38,8 +39,10 @@ export default function TetrisPlay() {
   const [level, setLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
+  const { user, userId, loading } = useUser();
   const [name, setName] = useState('INVITADO');
   const [saved, setSaved] = useState(false);
+  const playerName = user ?? name;
   const [gameKey, setGameKey] = useState(0);
   const [skinKey, setSkinKey] = useState('classic');
 
@@ -56,11 +59,11 @@ export default function TetrisPlay() {
   }, []);
 
   useEffect(() => {
-    if (over) {
+    if (over && !user) {
       const saved = localStorage.getItem('av_player_name');
       if (saved) setName(saved);
     }
-  }, [over]);
+  }, [over, user]);
 
   function changeSkin(key: string) {
     setSkinKey(key);
@@ -85,7 +88,7 @@ export default function TetrisPlay() {
           <div className="hud-stat">
             <div className="l">Jugador</div>
             <div className="v" style={{ color: 'var(--ink)' }}>
-              {name}
+              {playerName}
             </div>
           </div>
           <div className="hud-stat">
@@ -184,7 +187,7 @@ export default function TetrisPlay() {
 
       {!over && <TouchControls buttons={TOUCH_BUTTONS} />}
 
-      {over && (
+      {over && !loading && (
         <div className="modal-bd">
           <div className="modal">
             <h2>FIN DEL JUEGO</h2>
@@ -193,7 +196,8 @@ export default function TetrisPlay() {
             {!saved ? (
               <div className="input-row">
                 <input
-                  value={name}
+                  value={playerName}
+                  readOnly={!!user}
                   onChange={(e) =>
                     setName(e.target.value.toUpperCase().slice(0, 10))
                   }
@@ -203,13 +207,13 @@ export default function TetrisPlay() {
                   className="btn yellow"
                   onClick={async () => {
                     setSaved(true);
-                    localStorage.setItem('av_player_name', name);
+                    if (!user) localStorage.setItem('av_player_name', name);
                     const supabase = createClient();
                     await supabase.from('scores').insert({
                       game_id: 'tetris',
-                      player_name: name,
+                      player_name: playerName,
                       score,
-                      user_id: null,
+                      user_id: userId,
                     });
                   }}
                 >

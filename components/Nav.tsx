@@ -8,7 +8,7 @@ import { useUser } from '@/app/context/UserContext';
 export default function Nav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { user, signOut } = useUser();
+  const { user, loading, signOut } = useUser();
 
   const isLibrary = pathname.startsWith('/games');
   const isHall = pathname === '/hall-of-fame';
@@ -18,9 +18,9 @@ export default function Nav() {
     setOpen(false);
   }
 
-  function handleSignOut() {
-    signOut();
+  async function handleSignOut() {
     close();
+    await signOut();
   }
 
   return (
@@ -52,9 +52,22 @@ export default function Nav() {
           <span>CRÉDITOS · 03</span>
         </div>
 
-        {user ? (
-          <button className="btn ghost auth-btn" onClick={handleSignOut}>
-            {user} ▾
+        {loading ? (
+          // Reserva el hueco mientras se resuelve la sesión (sin parpadeo).
+          <span
+            className="btn auth-btn"
+            aria-hidden="true"
+            style={{ visibility: 'hidden' }}
+          >
+            Iniciar Sesión
+          </span>
+        ) : user ? (
+          <button
+            className="btn ghost auth-btn"
+            onClick={handleSignOut}
+            title="Cerrar sesión"
+          >
+            {user} · SALIR
           </button>
         ) : (
           <Link href="/auth" className="btn auth-btn">
@@ -99,13 +112,19 @@ export default function Nav() {
         >
           Sobre Nosotros
         </Link>
-        <Link
-          href="/auth"
-          className={pathname === '/auth' ? 'active' : ''}
-          onClick={close}
-        >
-          {user ? 'Cuenta' : 'Iniciar Sesión'}
-        </Link>
+        {loading ? null : user ? (
+          <button type="button" className="logout" onClick={handleSignOut}>
+            Cerrar sesión ({user})
+          </button>
+        ) : (
+          <Link
+            href="/auth"
+            className={pathname === '/auth' ? 'active' : ''}
+            onClick={close}
+          >
+            Iniciar Sesión
+          </Link>
+        )}
         <div style={{ flex: 1 }} />
         <div
           className="pixel"
