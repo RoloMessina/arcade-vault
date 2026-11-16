@@ -59,6 +59,7 @@ Definición completa de cada uno en su archivo `.claude/agents/<nombre>.md` (tod
 - `skin-designer` — audita y configura skins (`classic`, `neon`, `retro`, legibles en modo oscuro). Estado en `references/templates/games-with-themes.md`.
 - `mobile-porter` — audita/arregla la web en navegador móvil (sin scroll horizontal, `TouchControls`, canvas escalado, áreas táctiles ≥ 44 px). Estado en `references/templates/mobile-status.md`.
 - `game-performance-booster` — recibe el id de un juego y audita/optimiza su rendimiento (game loop, coste de canvas, re-renders). Solo toca rendimiento.
+- `security-guard` — audita la seguridad de la base de datos (RLS, políticas, funciones `SECURITY DEFINER`, advisors, deriva de migraciones) y de la app (auth, callback, `/api/contact`, headers, secretos, dependencias). Alcance: `db`, `app`, `deps` o `todo`. Por defecto solo informa (guarda informes en `references/security/audits/`); corrige solo si se le pide, con migraciones nuevas sin aplicarlas. Línea base: specs 14 y 15.
 
 Flujo para un juego nuevo: `game-planner` o `game-jam <tema>` → `/add-game` (o copiar el spec de la jam a `specs/`) → `/spec-impl-game NN`.
 
@@ -67,6 +68,17 @@ Flujo para un juego nuevo: `game-planner` o `game-jam <tema>` → `/add-game` (o
 - **Hook PostToolUse** (`.claude/settings.json`, `Write|Edit|MultiEdit`): ejecuta `.claude/hooks/format-and-lint.sh` → prettier en ts/tsx/js/jsx/json/css/md y `eslint --fix` en ts/tsx/js/jsx. No hace falta formatear a mano.
 - **MCP Supabase** (`.mcp.json`, HTTP, habilitado en `settings.local.json`): usar para inspeccionar/modificar la base de datos del proyecto.
 - Directorios `.playwright-mcp/` y `.playwright-screenshots/` reservados para pruebas visuales con Playwright.
+
+## Seguridad
+
+Medidas del spec 15 (`references/security/security-checklist.md` recoge el estado):
+
+- **Headers HTTP** en `next.config.ts` para todas las rutas: `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Strict-Transport-Security` y `Permissions-Policy`. Sin CSP (spec aparte).
+- **Contraseña mínima de 8 caracteres:** validada en `app/auth/AuthForm.tsx` y en el panel de Supabase (Auth → Sign In / Providers → Email).
+- **Rate limit de registros/logins:** 10 cada 5 minutos por IP (panel de Supabase → Auth → Rate Limits). Ajuste manual, no versionado.
+- **Funciones `SECURITY DEFINER`** `username_disponible` y `rls_auto_enable`: sin `EXECUTE` para `public`, `anon` y `authenticated` (migración `20261116140000_revoke_definer_functions.sql`). No se usan desde el código; `rls_auto_enable` es el helper de Supabase del event trigger `ensure_rls`.
+- **RLS** activo en `games`, `scores` y `profiles`.
+- Leaked password protection: bloqueado por el plan (solo Pro).
 
 ## Architecture
 
@@ -112,6 +124,7 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 | 12  | Juego Frog Crossing (Frogger)         | Obsoleto (sustituido por 13) |
 | 13  | Juego Frogger (spec de game-jam)      | Implementado (3 criterios de guardado de score pendientes de verificar a mano) |
 | 14  | Autenticación con Supabase Auth       | Implementado (4 criterios sin cerrar, ver el spec) |
+| 15  | Seguridad: checklist básico           | Implementado (leaked password protection bloqueado por el plan Pro) |
 
 Specs de game-jam en `specs/game-jam/<game-id>/` (estado `Borrador`, aún sin pasar a `specs/`): `deep-dive` (10), `fish-feast` (11), `lily-leap` (13), `tongue-tide` (14, número ya usado por el spec 14 de auth: renumerar al copiar); `frog-crossing` (12) y `frogger` (`01-frogger-core.md`, `Propuesto`) ya cubiertos por el spec 13.
 

@@ -41,7 +41,7 @@ export default function AuthForm() {
     if (!USERNAME_RE.test(name)) {
       return 'El usuario debe tener de 3 a 10 caracteres: letras, números o guion bajo.';
     }
-    if (pass.length < 6) return 'Contraseña débil: mínimo 6 caracteres.';
+    if (pass.length < 8) return 'Contraseña débil: mínimo 8 caracteres.';
 
     const { data: taken } = await supabase
       .from('profiles')
@@ -60,7 +60,7 @@ export default function AuthForm() {
       return 'Ese correo ya está registrado.';
     }
     if (err.code === 'weak_password') {
-      return 'Contraseña débil: mínimo 6 caracteres.';
+      return 'Contraseña débil: mínimo 8 caracteres.';
     }
     if (err.code === 'email_address_invalid') {
       return 'El correo electrónico no es válido.';
