@@ -1,6 +1,6 @@
 # SPEC 12 — Integración del juego Frog Crossing
 
-> **Estado:** Aprobado
+> **Estado:** Obsoleto (sustituido por `13-frogger-game.md`, que implementa el mismo juego)
 > **Depende de:** 06-games-table-leaderboard-supabase
 > **Fecha:** 2026-11-15
 > **Tema de jam:** Frogger — cruza la carretera y el río sin hacerte papilla

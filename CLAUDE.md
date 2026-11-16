@@ -68,6 +68,10 @@ Los skills `spec` y `spec-impl` viven en `.agents/skills/` y se exponen en `.cla
   - Patrón de referencia: `components/games/TouchControls.tsx` (eventos de teclado sintéticos; `TOUCH_BUTTONS` por play-page) y `@media (hover: none) and (pointer: coarse)` en `app/globals.css`.
   - Estado en `references/templates/mobile-status.md` (hay que actualizarlo al añadir un juego o una página).
 
+- `game-performance-booster` (`.claude/agents/game-performance-booster.md`, modelo sonnet) — recibe el **id del juego** (p. ej. `frogger`) y revisa su rendimiento: game loop, coste de dibujo en canvas (`shadowBlur`, fondos estáticos sin cachear), asignaciones por frame, re-renders de React y coste del fondo global.
+  - Dos fases: auditoría (solo lectura, mide FPS/p99 por skin y viewport con Playwright si el servidor corre) y optimización (solo si se pide, midiendo antes/después).
+  - Solo toca rendimiento (`draw()`, cachés, callbacks, CSS de fondo/canvas); nunca reglas de juego, diseño de skins, Supabase ni specs.
+
 ## Hooks y MCP
 
 - **Hook PostToolUse** (`.claude/settings.json`, `Write|Edit|MultiEdit`): ejecuta `.claude/hooks/format-and-lint.sh` → prettier en ts/tsx/js/jsx/json/css/md y `eslint --fix` en ts/tsx/js/jsx. No hace falta formatear a mano.
@@ -113,7 +117,7 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 | 07  | Juego Tetris                          | Implementado |
 | 08  | Juego Arkanoid                        | Aprobado (verificar implementación) |
 | 09  | Juego Snake                           | Implementado |
-| 12  | Juego Frog Crossing (Frogger)         | Aprobado (duplicado de 13; decidir si pasa a Obsoleto) |
+| 12  | Juego Frog Crossing (Frogger)         | Obsoleto (sustituido por 13) |
 | 13  | Juego Frogger (spec de game-jam)      | Implementado (3 criterios de guardado de score pendientes de verificar a mano) |
 
 Para añadir un juego: `/add-game` → genera `specs/NN-<id>-game.md` (estado `Borrador`) → revisar y pasar a `Aprobado` → `/spec-impl-game NN` (o `/spec-impl NN` si no se quieren skins/móvil automáticos). Las tablas `games`/`scores` ya existen; cada juego nuevo solo requiere un INSERT en `games`.
