@@ -457,7 +457,7 @@ const SKINS: Record<string, Skin> = {
     timeLow: '#ff2d6f',
     text: '#e6e9ff',
     life: '#b6ff00',
-    glow: 12,
+    glow: 5,
     outline: true,
     bevel: false,
     blocky: false,
@@ -546,7 +546,7 @@ function drawWheel(
   }
 }
 
-function drawBackground(ctx: CanvasRenderingContext2D, skin: Skin) {
+function paintBackground(ctx: CanvasRenderingContext2D, skin: Skin) {
   for (let r = 0; r < ROWS; r++) {
     let color = skin.road;
     if (r === ROW_GOALS) color = skin.goalRow;
@@ -555,17 +555,32 @@ function drawBackground(ctx: CanvasRenderingContext2D, skin: Skin) {
     ctx.fillStyle = color;
     ctx.fillRect(0, r * CELL, CANVAS_W, CELL);
   }
-  // Líneas discontinuas entre carriles de carretera
+  // Líneas discontinuas entre carriles de carretera (un solo path)
   ctx.strokeStyle = skin.laneLine;
   ctx.lineWidth = 2;
   ctx.setLineDash(skin.blocky ? [16, 16] : [16, 14]);
+  ctx.beginPath();
   for (let r = ROW_ROAD_TOP + 1; r <= ROW_ROAD_BOT; r++) {
-    ctx.beginPath();
     ctx.moveTo(0, r * CELL);
     ctx.lineTo(CANVAS_W, r * CELL);
-    ctx.stroke();
   }
+  ctx.stroke();
   ctx.setLineDash([]);
+}
+
+// El fondo es estático por skin: se pinta una vez en un canvas offscreen
+const bgCache = new WeakMap<Skin, HTMLCanvasElement>();
+
+function drawBackground(ctx: CanvasRenderingContext2D, skin: Skin) {
+  let bg = bgCache.get(skin);
+  if (!bg) {
+    bg = document.createElement('canvas');
+    bg.width = CANVAS_W;
+    bg.height = CANVAS_H;
+    paintBackground(bg.getContext('2d')!, skin);
+    bgCache.set(skin, bg);
+  }
+  ctx.drawImage(bg, 0, 0);
 }
 
 function drawEntity(
@@ -598,12 +613,12 @@ function drawEntity(
     fillShape(ctx, skin, skin.log, x + 2, y + 6, w - 4, CELL - 12);
     ctx.strokeStyle = skin.logGrain;
     ctx.lineWidth = 2;
+    ctx.beginPath();
     for (let k = 1; k < e.width * 2; k++) {
-      ctx.beginPath();
       ctx.moveTo(x + k * (CELL / 2), y + 10);
       ctx.lineTo(x + k * (CELL / 2), y + CELL - 10);
-      ctx.stroke();
     }
+    ctx.stroke();
   } else {
     for (let k = 0; k < e.width; k++) {
       const cx = x + k * CELL + CELL / 2;
@@ -718,8 +733,8 @@ const FACING_ANGLE: Record<Direction, number> = {
 };
 
 function drawGoals(ctx: CanvasRenderingContext2D, skin: Skin, goals: boolean[]) {
-  GOAL_COLS.forEach((c, i) => {
-    const x = c * CELL;
+  for (let i = 0; i < GOAL_COLS.length; i++) {
+    const x = GOAL_COLS[i] * CELL;
     ctx.fillStyle = skin.goalSlot;
     ctx.fillRect(x, 18, 2 * CELL, CELL - 18);
     ctx.strokeStyle = skin.goalBorder;
@@ -729,7 +744,7 @@ function drawGoals(ctx: CanvasRenderingContext2D, skin: Skin, goals: boolean[]) 
     ctx.strokeRect(x + 1, 19, 2 * CELL - 2, CELL - 20);
     ctx.shadowBlur = 0;
     if (goals[i]) drawFrogShape(ctx, skin, x + CELL, 29, 0.6, 0, false);
-  });
+  }
 }
 
 function drawHud(ctx: CanvasRenderingContext2D, skin: Skin, s: GameState) {
@@ -773,11 +788,11 @@ function drawHud(ctx: CanvasRenderingContext2D, skin: Skin, s: GameState) {
 function draw(ctx: CanvasRenderingContext2D, s: GameState, skin: Skin) {
   drawBackground(ctx, skin);
   drawGoals(ctx, skin, s.goals);
-  s.lanes.forEach((lane) =>
-    lane.entities.forEach((e, i) =>
-      drawEntity(ctx, skin, e, lane.row, lane.dir, i),
-    ),
-  );
+  for (const lane of s.lanes) {
+    for (let i = 0; i < lane.entities.length; i++) {
+      drawEntity(ctx, skin, lane.entities[i], lane.row, lane.dir, i);
+    }
+  }
 
   const f = s.frog;
   let fx = f.col;
@@ -834,7 +849,7 @@ export default function FroggerGame({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
+    const ctx = canvas?.getContext('2d', { alpha: false });
     if (!canvas || !ctx) return;
 
     let raf = 0;

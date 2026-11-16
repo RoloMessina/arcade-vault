@@ -1120,7 +1120,6 @@ a {
     transparent 2px 4px
   );
   pointer-events: none;
-  mix-blend-mode: multiply;
 }
 .crt-screen::before {
   content: '';
@@ -2954,5 +2953,24 @@ a {
   .about-divider {
     padding: 0 16px;
     margin: 40px auto;
+  }
+}
+
+/* ===== performance: en las play-pages el fondo no se anima ni mezcla =====
+   La animación de background-position + perspective + mask y el blend overlay
+   a pantalla completa repintan cada frame y compiten con el rAF del canvas. */
+body:has(.av-player) .av-bg::before {
+  animation: none;
+}
+body:has(.av-player) .av-bg::after {
+  mix-blend-mode: normal;
+  opacity: 0.3;
+}
+body:has(.av-player) .av-noise {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .av-bg::before {
+    animation: none;
   }
 }
