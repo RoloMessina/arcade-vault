@@ -42,35 +42,25 @@ Nunca commitear `.env.local`.
 
 ## Skills
 
-- Usa siempre `/frontend-design` para diseñar la interfaz de usuario.
+- `/frontend-design` — úsalo siempre para diseñar la interfaz de usuario.
 - `/spec` — escribe un spec en `specs/NN-<slug>.md` sección por sección (template en `.claude/skills/spec/template.md`).
 - `/spec-impl NN` — implementa un spec paso a paso.
-- `/spec-impl-game NN` — skill propio (`.claude/skills/spec-impl-game/`, `disable-model-invocation`). Hace lo mismo que `/spec-impl` (lee y aplica sus fases 1–4) y al terminar lanza **en secuencia** `skin-designer` y luego `mobile-porter` sobre el juego nuevo (nunca en paralelo: tocan los mismos archivos).
-- `/add-game <references/started-games/NN-name | descripción>` — skill propio (`.claude/skills/add-game/`, `disable-model-invocation`). Genera **solo el spec** de un juego canvas nuevo (componente, play-page, INSERT en `games`, leaderboard). Luego se implementa con `/spec-impl`.
+- `/spec-impl-game NN` — propio (`.claude/skills/spec-impl-game/`). Igual que `/spec-impl` y al terminar lanza **en secuencia** `skin-designer` y luego `mobile-porter` sobre el juego nuevo (nunca en paralelo: tocan los mismos archivos).
+- `/add-game <references/started-games/NN-name | descripción>` — propio (`.claude/skills/add-game/`). Genera **solo el spec** de un juego canvas nuevo; se implementa después con `/spec-impl-game`.
 
-Los skills `spec` y `spec-impl` viven en `.agents/skills/` y se exponen en `.claude/skills/` (symlinks).
+`spec` y `spec-impl` (de `Klerith/fernando-skills`, ver `skills-lock.json`) existen como copias reales en `.agents/skills/`, `.claude/skills/` y `.claude/agents/` (los symlinks se rompían). Si se editan, mantener las copias sincronizadas.
 
 ## Agentes
 
-- `game-planner` (`.claude/agents/game-planner.md`, modelo sonnet, `memory: project`) — planifica y decide qué juego canvas nuevo añadir a Arcade Vault. Puntúa candidatos (1-5) por puntuación competitiva, variedad, viabilidad en canvas, rejugabilidad, controles y coherencia retro-arcade, y recomienda uno.
-  - Solo lectura sobre el código y Supabase (`execute_sql`, `list_tables`); únicamente escribe en su memoria (`.claude/agent-memory/game-planner/`: `MEMORY.md`, `sugerencias.md`, `preferencias.md`) y en `references/game-sugestion-to_do.md` (to-do visible: Recomendado actual / Pendientes / Implementados / Descartados).
-  - No repite juegos ya sugeridos. Flujo: `game-planner` → `/add-game <descripción>` → `/spec-impl NN`.
+Definición completa de cada uno en su archivo `.claude/agents/<nombre>.md` (todos modelo sonnet).
 
-- `game-jam` (`.claude/agents/game-jam.md`, modelo sonnet) — recibe un **tema** y genera tres specs completos (estado `Borrador`, mismo formato que `specs/07-09`) en `specs/game-jam/<game-id>/NN-<game-id>-game.md`. Solo escribe specs; no código ni BD. Flujo: `game-jam <tema>` → revisar → copiar a `specs/` → `/spec-impl NN`.
+- `game-planner` — decide qué juego canvas nuevo añadir (puntúa candidatos, no repite sugerencias; memoria en `.claude/agent-memory/game-planner/`, to-do en `references/templates/game-sugestion-to_do.md`).
+- `game-jam` — recibe un tema y genera tres specs `Borrador` en `specs/game-jam/<game-id>/`. Solo escribe specs.
+- `skin-designer` — audita y configura skins (`classic`, `neon`, `retro`, legibles en modo oscuro). Estado en `references/templates/games-with-themes.md`.
+- `mobile-porter` — audita/arregla la web en navegador móvil (sin scroll horizontal, `TouchControls`, canvas escalado, áreas táctiles ≥ 44 px). Estado en `references/templates/mobile-status.md`.
+- `game-performance-booster` — recibe el id de un juego y audita/optimiza su rendimiento (game loop, coste de canvas, re-renders). Solo toca rendimiento.
 
-- `skin-designer` (`.claude/agents/skin-designer.md`, modelo sonnet) — audita y configura las skins de los juegos. Regla: todo juego debe tener al menos 3 skins — `classic` (default), `neon` y `retro` — y las tres deben verse bien en modo oscuro.
-  - Dos fases: auditoría (solo lectura) e implementación juego a juego (solo si se pide). Solo toca apariencia: objetos `SKINS` y `draw()` en `components/games/`, selector en las play-pages y estilos del selector.
-  - Patrón de referencia: `TetrisGame.tsx` (prop `skinKey`, `SKINS`, `skinRef`) y su play-page (selector + `localStorage` `<game-id>-skin`).
-  - Estado actual en `references/templates/games-with-themes.md` (hay que actualizarlo al completar un juego). Hoy ningún juego cumple: Tetris usa `retro` como default y no tiene `classic`; Asteroids, Arkanoid y Snake no tienen skins.
-
-- `mobile-porter` (`.claude/agents/mobile-porter.md`, modelo sonnet) — revisa que la web se vea y juegue bien en el navegador del móvil (no hay app nativa ni PWA): sin scroll horizontal, controles táctiles, canvas escalado y áreas táctiles ≥ 44 px.
-  - Dos fases: auditoría (solo lectura, con capturas en `.playwright-screenshots/mobile-*.png`) y arreglos (solo si se piden). Solo toca CSS, maquetación, tamaño del canvas y `TouchControls`; nunca lógica de juego, skins ni specs.
-  - Patrón de referencia: `components/games/TouchControls.tsx` (eventos de teclado sintéticos; `TOUCH_BUTTONS` por play-page) y `@media (hover: none) and (pointer: coarse)` en `app/globals.css`.
-  - Estado en `references/templates/mobile-status.md` (hay que actualizarlo al añadir un juego o una página).
-
-- `game-performance-booster` (`.claude/agents/game-performance-booster.md`, modelo sonnet) — recibe el **id del juego** (p. ej. `frogger`) y revisa su rendimiento: game loop, coste de dibujo en canvas (`shadowBlur`, fondos estáticos sin cachear), asignaciones por frame, re-renders de React y coste del fondo global.
-  - Dos fases: auditoría (solo lectura, mide FPS/p99 por skin y viewport con Playwright si el servidor corre) y optimización (solo si se pide, midiendo antes/después).
-  - Solo toca rendimiento (`draw()`, cachés, callbacks, CSS de fondo/canvas); nunca reglas de juego, diseño de skins, Supabase ni specs.
+Flujo para un juego nuevo: `game-planner` o `game-jam <tema>` → `/add-game` (o copiar el spec de la jam a `specs/`) → `/spec-impl-game NN`.
 
 ## Hooks y MCP
 
@@ -87,7 +77,7 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 - `/` (`page.tsx`) — landing; `RevealObserver.tsx` anima secciones al hacer scroll
 - `/games` (`page.tsx` + `GamesGrid.tsx`) — catálogo leído de la tabla `games`
 - `/games/[id]` — detalle del juego (dinámico desde Supabase)
-- `/games/[id]/play` — reproductor genérico; además existen play-pages específicas: `/games/{asteroids,tetris,arkanoid,snake}/play`
+- `/games/[id]/play` — reproductor genérico; además existen play-pages específicas: `/games/{asteroids,tetris,arkanoid,snake,frogger}/play`
 - `/hall-of-fame` (`page.tsx` + `HallOfFameClient.tsx`) — leaderboards por juego (tabs automáticas por cada fila de `games`)
 - `/about` — página About con formulario de contacto
 - `/auth` — login/registro (por ahora solo nombre de jugador local)
@@ -95,7 +85,7 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 
 ### Juegos (`components/games/`)
 
-`AsteroidsGame`, `TetrisGame`, `ArkanoidGame`, `SnakeGame` — componentes canvas con HUD en React (`score`, `lives`, `level`, `paused`, `over`), prop `paused`, limpieza de listeners en el `useEffect`, y modal de guardado de score al terminar. `AsteroidsGame` es la referencia de patrón. Assets en `public/` (sprites, mp3). Fuentes originales en `references/started-games/` y maquetas en `references/templates/`.
+`AsteroidsGame`, `TetrisGame`, `ArkanoidGame`, `SnakeGame`, `FroggerGame` (más `TouchControls`, controles táctiles compartidos) — componentes canvas con HUD en React (`score`, `lives`, `level`, `paused`, `over`), prop `paused`, limpieza de listeners en el `useEffect`, y modal de guardado de score al terminar. `AsteroidsGame` es la referencia de patrón. Assets en `public/` (sprites, mp3). Fuentes originales en `references/started-games/` y maquetas en `references/templates/`.
 
 ### Datos y estado
 
@@ -108,16 +98,18 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 
 | #   | Spec                                  | Estado      |
 | --- | ------------------------------------- | ----------- |
-| 01  | MVP visual screens                    | —           |
-| 02  | Home landing page                     | —           |
-| 03  | About page + contacto con Resend      | —           |
+| 01  | MVP visual screens                    | Implementado |
+| 02  | Home landing page                     | Aprobado    |
+| 03  | About page + contacto con Resend      | Aprobado    |
 | 04  | Integración de Supabase               | Implementado |
 | 05  | Juego Asteroids                       | Implementado |
 | 06  | Tabla `games` + leaderboard Supabase  | Implementado |
 | 07  | Juego Tetris                          | Implementado |
-| 08  | Juego Arkanoid                        | Aprobado (verificar implementación) |
+| 08  | Juego Arkanoid                        | Implementado |
 | 09  | Juego Snake                           | Implementado |
 | 12  | Juego Frog Crossing (Frogger)         | Obsoleto (sustituido por 13) |
 | 13  | Juego Frogger (spec de game-jam)      | Implementado (3 criterios de guardado de score pendientes de verificar a mano) |
+
+Specs de game-jam en `specs/game-jam/<game-id>/` (estado `Borrador`, aún sin pasar a `specs/`): `deep-dive` (10), `fish-feast` (11), `lily-leap` (13), `tongue-tide` (14); `frog-crossing` (12) y `frogger` (`01-frogger-core.md`, `Propuesto`) ya cubiertos por el spec 13.
 
 Para añadir un juego: `/add-game` → genera `specs/NN-<id>-game.md` (estado `Borrador`) → revisar y pasar a `Aprobado` → `/spec-impl-game NN` (o `/spec-impl NN` si no se quieren skins/móvil automáticos). Las tablas `games`/`scores` ya existen; cada juego nuevo solo requiere un INSERT en `games`.
