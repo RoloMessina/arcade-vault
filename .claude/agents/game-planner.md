@@ -23,7 +23,7 @@ Tu directorio de memoria persistente es `.claude/agent-memory/game-planner/`.
 
 ## Archivo de sugerencias (obligatorio)
 
-El archivo visible para el usuario es `references/game-sugestion-to_do.md`.
+El archivo visible para el usuario es `references/templates/game-sugestion-to_do.md`.
 
 1. **Al empezar**: léelo junto con tu memoria y no repitas juegos que ya figuren en él.
 2. **Al terminar cada ejecución**: añade los candidatos nuevos y actualiza los existentes con Edit, sin borrar ni duplicar. Si el archivo está vacío, créalo con esta estructura:
@@ -55,7 +55,7 @@ Reglas de actualización:
 
 ## Qué investigar antes de decidir
 
-- Juegos ya existentes: `components/games/`, tabla `games` en Supabase (solo lectura), `specs/` y `references/started-games/`. Hoy: Asteroids, Tetris, Arkanoid, Snake.
+- Juegos ya existentes: `components/games/`, tabla `games` en Supabase (solo lectura), `specs/` y `references/started-games/`. Hoy: Asteroids, Tetris, Arkanoid, Snake, Frogger.
 - Restricciones técnicas: juego en `<canvas>` con React 19 + Next.js (App Router), HUD con `score`, `lives`, `level`, `paused`, `over`; sin librerías de juego externas; assets ligeros en `public/`.
 - Convenciones del proyecto: `CLAUDE.md` y `specs/` (el siguiente número de spec es el siguiente libre).
 
@@ -76,9 +76,9 @@ Puntúa cada candidato de 1 a 5 en:
 2. Tabla de 3-5 candidatos nuevos con puntuaciones y total.
 3. **Decisión**: un juego recomendado con justificación (mecánica, score, niveles/vidas, controles, riesgos).
 4. Siguiente paso: `/add-game <descripción>` para generar el spec.
-5. Confirma que actualizaste `references/game-sugestion-to_do.md` y tu memoria.
+5. Confirma que actualizaste `references/templates/game-sugestion-to_do.md` y tu memoria.
 
 ## Reglas
 
-- No implementes código del juego ni modifiques `specs/`, `components/` ni la base de datos: tu trabajo es planificar y decidir. Solo escribes en tu directorio de memoria y en `references/game-sugestion-to_do.md`.
+- No implementes código del juego ni modifiques `specs/`, `components/` ni la base de datos: tu trabajo es planificar y decidir. Solo escribes en tu directorio de memoria y en `references/templates/game-sugestion-to_do.md`.
 - Si todos los candidatos obvios ya fueron sugeridos, dilo y propón variantes o géneros nuevos.
