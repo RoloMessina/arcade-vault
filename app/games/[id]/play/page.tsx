@@ -10,15 +10,16 @@ export default function GamePlayer({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { user } = useUser();
+  const { user, loading } = useUser();
 
   const [score, setScore] = useState(0);
   const [lives] = useState(3);
   const [level, setLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [name, setName] = useState(user ?? 'INVITADO');
+  const [name, setName] = useState('INVITADO');
   const [saved, setSaved] = useState(false);
+  const playerName = user ?? name;
 
   useEffect(() => {
     if (over || paused) return;
@@ -39,7 +40,7 @@ export default function GamePlayer({
     setPaused(false);
     setOver(false);
     setSaved(false);
-    setName(user ?? 'INVITADO');
+    setName('INVITADO');
   }
 
   return (
@@ -49,7 +50,7 @@ export default function GamePlayer({
           <div className="hud-stat">
             <div className="l">Jugador</div>
             <div className="v" style={{ color: 'var(--ink)' }}>
-              {name}
+              {playerName}
             </div>
           </div>
           <div className="hud-stat">
@@ -118,7 +119,7 @@ export default function GamePlayer({
         </div>
       </div>
 
-      {over && (
+      {over && !loading && (
         <div className="modal-bd">
           <div className="modal">
             <h2>FIN DEL JUEGO</h2>
@@ -127,7 +128,8 @@ export default function GamePlayer({
             {!saved ? (
               <div className="input-row">
                 <input
-                  value={name}
+                  value={playerName}
+                  readOnly={!!user}
                   onChange={(e) =>
                     setName(e.target.value.toUpperCase().slice(0, 10))
                   }

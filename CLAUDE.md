@@ -80,7 +80,8 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 - `/games/[id]/play` — reproductor genérico; además existen play-pages específicas: `/games/{asteroids,tetris,arkanoid,snake,frogger}/play`
 - `/hall-of-fame` (`page.tsx` + `HallOfFameClient.tsx`) — leaderboards por juego (tabs automáticas por cada fila de `games`)
 - `/about` — página About con formulario de contacto
-- `/auth` — login/registro (por ahora solo nombre de jugador local)
+- `/auth` (`page.tsx` + `AuthForm.tsx`) — registro y login con Supabase Auth: email + contraseña, Google y GitHub; "jugar como invitado"
+- `/auth/callback` (`route.ts`) — intercambia el `code` de OAuth por la sesión y redirige a `/`
 - `/api/contact` (`route.ts`) — POST que envía el mensaje vía Resend
 
 ### Juegos (`components/games/`)
@@ -90,7 +91,8 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 ### Datos y estado
 
 - `lib/supabase/{client,server,types}.ts` — clientes browser/server (`createClient` async con `cookies()`), y tipos `GameRow` / `ScoreRow` (`scores`: `game_id`, `player_name`, `score`, `user_id`).
-- `app/context/UserContext.tsx` — `UserProvider`/`useUser` (usuario en `localStorage` key `av_user`; `login`, `signOut`).
+- `app/context/UserContext.tsx` — `UserProvider`/`useUser`: lee la sesión de Supabase (`getSession` + `onAuthStateChange`) y expone `{ user (profiles.username), userId (auth.uid()), loading, signOut }`. Sin sesión (o sesión sin perfil) = invitado. Las play-pages guardan el score con `user_id: userId` y el username bloqueado; el invitado usa nombre libre (`localStorage` `av_player_name`) y `user_id: null`.
+- Tabla `profiles` (`id` → `auth.users`, `username` único `^[A-Z0-9_]{3,10}$`), creada por el trigger `handle_new_user` al registrarse (migraciones en `supabase/migrations/`). RLS de `scores`: el INSERT exige `user_id` nulo o igual a `auth.uid()`.
 - `app/data/` — datos locales estáticos (legado de las primeras specs; la fuente real es Supabase).
 - `components/Nav.tsx` — navegación global. `demos/Demo.tsx` — demo auxiliar.
 
@@ -109,7 +111,8 @@ Uses Next.js **App Router** exclusively — no `pages/` directory. Server Compon
 | 09  | Juego Snake                           | Implementado |
 | 12  | Juego Frog Crossing (Frogger)         | Obsoleto (sustituido por 13) |
 | 13  | Juego Frogger (spec de game-jam)      | Implementado (3 criterios de guardado de score pendientes de verificar a mano) |
+| 14  | Autenticación con Supabase Auth       | Implementado (4 criterios sin cerrar, ver el spec) |
 
-Specs de game-jam en `specs/game-jam/<game-id>/` (estado `Borrador`, aún sin pasar a `specs/`): `deep-dive` (10), `fish-feast` (11), `lily-leap` (13), `tongue-tide` (14); `frog-crossing` (12) y `frogger` (`01-frogger-core.md`, `Propuesto`) ya cubiertos por el spec 13.
+Specs de game-jam en `specs/game-jam/<game-id>/` (estado `Borrador`, aún sin pasar a `specs/`): `deep-dive` (10), `fish-feast` (11), `lily-leap` (13), `tongue-tide` (14, número ya usado por el spec 14 de auth: renumerar al copiar); `frog-crossing` (12) y `frogger` (`01-frogger-core.md`, `Propuesto`) ya cubiertos por el spec 13.
 
 Para añadir un juego: `/add-game` → genera `specs/NN-<id>-game.md` (estado `Borrador`) → revisar y pasar a `Aprobado` → `/spec-impl-game NN` (o `/spec-impl NN` si no se quieren skins/móvil automáticos). Las tablas `games`/`scores` ya existen; cada juego nuevo solo requiere un INSERT en `games`.

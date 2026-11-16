@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useUser } from '@/app/context/UserContext';
 import TouchControls, {
   type TouchButton,
 } from '@/components/games/TouchControls';
@@ -32,8 +33,10 @@ export default function FroggerPlay() {
   const [lives, setLives] = useState(3);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
+  const { user, userId, loading } = useUser();
   const [name, setName] = useState('INVITADO');
   const [saved, setSaved] = useState(false);
+  const playerName = user ?? name;
   const [gameKey, setGameKey] = useState(0);
 
   useEffect(() => {
@@ -58,13 +61,13 @@ export default function FroggerPlay() {
   }, []);
 
   useEffect(() => {
-    if (over) {
+    if (over && !user) {
       const stored = localStorage.getItem('av_player_name');
       // Lectura de localStorage al abrir el modal (evita romper el SSR)
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (stored) setName(stored);
     }
-  }, [over]);
+  }, [over, user]);
 
   function restart() {
     setScore(0);
@@ -84,7 +87,7 @@ export default function FroggerPlay() {
           <div className="hud-stat">
             <div className="l">Jugador</div>
             <div className="v" style={{ color: 'var(--ink)' }}>
-              {name}
+              {playerName}
             </div>
           </div>
           <div className="hud-stat">
@@ -181,7 +184,7 @@ export default function FroggerPlay() {
 
       {!over && <TouchControls buttons={TOUCH_BUTTONS} />}
 
-      {over && (
+      {over && !loading && (
         <div className="modal-bd">
           <div className="modal modal-frogger">
             <h2>FIN DEL JUEGO</h2>
@@ -190,7 +193,8 @@ export default function FroggerPlay() {
             {!saved ? (
               <div className="input-row">
                 <input
-                  value={name}
+                  value={playerName}
+                  readOnly={!!user}
                   onChange={(e) =>
                     setName(e.target.value.toUpperCase().slice(0, 10))
                   }
@@ -200,13 +204,13 @@ export default function FroggerPlay() {
                   className="btn yellow"
                   onClick={async () => {
                     setSaved(true);
-                    localStorage.setItem('av_player_name', name);
+                    if (!user) localStorage.setItem('av_player_name', name);
                     const supabase = createClient();
                     await supabase.from('scores').insert({
                       game_id: 'frogger',
-                      player_name: name,
+                      player_name: playerName,
                       score,
-                      user_id: null,
+                      user_id: userId,
                     });
                   }}
                 >

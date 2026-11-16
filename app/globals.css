@@ -336,6 +336,18 @@ a {
   color: var(--ink-dim);
   border-bottom: 1px dashed var(--line-2);
 }
+.av-mobile-panel button.logout {
+  padding: 14px 12px;
+  min-height: 44px;
+  text-align: left;
+  font-family: var(--pixel);
+  font-size: 11px;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dashed var(--line-2);
+  cursor: pointer;
+}
 .av-mobile-panel a.active {
   color: var(--cyan);
 }
@@ -1525,6 +1537,24 @@ a {
 .social .btn {
   padding: 12px;
   font-size: 9px;
+}
+.auth-card .btn,
+.auth-card .auth-tabs button,
+.auth-card .field input {
+  min-height: 44px;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.auth-error {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--magenta);
+  background: rgba(255, 0, 110, 0.08);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 /* ===== salón ===== */

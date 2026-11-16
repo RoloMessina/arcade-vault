@@ -26,15 +26,16 @@ const SKIN_OPTIONS = [
 ];
 
 export default function AsteroidsPlay() {
-  const { user } = useUser();
+  const { user, userId, loading } = useUser();
 
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [level, setLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [name, setName] = useState(user ?? 'INVITADO');
+  const [name, setName] = useState('INVITADO');
   const [saved, setSaved] = useState(false);
+  const playerName = user ?? name;
   const [gameKey, setGameKey] = useState(0);
   const [skinKey, setSkinKey] = useState('classic');
 
@@ -60,11 +61,11 @@ export default function AsteroidsPlay() {
   }, []);
 
   useEffect(() => {
-    if (over) {
+    if (over && !user) {
       const saved = localStorage.getItem('av_player_name');
       if (saved) setName(saved);
     }
-  }, [over]);
+  }, [over, user]);
 
   function restart() {
     setScore(0);
@@ -73,7 +74,7 @@ export default function AsteroidsPlay() {
     setPaused(false);
     setOver(false);
     setSaved(false);
-    setName(user ?? 'INVITADO');
+    setName('INVITADO');
     setGameKey((k) => k + 1);
   }
 
@@ -84,7 +85,7 @@ export default function AsteroidsPlay() {
           <div className="hud-stat">
             <div className="l">Jugador</div>
             <div className="v" style={{ color: 'var(--ink)' }}>
-              {name}
+              {playerName}
             </div>
           </div>
           <div className="hud-stat">
@@ -183,7 +184,7 @@ export default function AsteroidsPlay() {
 
       {!over && <TouchControls buttons={TOUCH_BUTTONS} />}
 
-      {over && (
+      {over && !loading && (
         <div className="modal-bd">
           <div className="modal">
             <h2>FIN DEL JUEGO</h2>
@@ -192,7 +193,8 @@ export default function AsteroidsPlay() {
             {!saved ? (
               <div className="input-row">
                 <input
-                  value={name}
+                  value={playerName}
+                  readOnly={!!user}
                   onChange={(e) =>
                     setName(e.target.value.toUpperCase().slice(0, 10))
                   }
@@ -202,13 +204,13 @@ export default function AsteroidsPlay() {
                   className="btn yellow"
                   onClick={async () => {
                     setSaved(true);
-                    localStorage.setItem('av_player_name', name);
+                    if (!user) localStorage.setItem('av_player_name', name);
                     const supabase = createClient();
                     await supabase.from('scores').insert({
                       game_id: 'asteroids',
-                      player_name: name,
+                      player_name: playerName,
                       score,
-                      user_id: null,
+                      user_id: userId,
                     });
                   }}
                 >
